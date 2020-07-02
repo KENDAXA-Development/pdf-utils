@@ -1,0 +1,5 @@
+lxml
+numpy
+Pillow
+pdf2image
+PyPDF2
