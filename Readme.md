@@ -6,3 +6,10 @@
 * adding digital layer to image-pdfs
 
 etc
+
+## Dependencies
+
+Apart of pip requirement, you should have the following dependencies installed:
+
+* Poppler 
+* Tesseract 
