@@ -3,3 +3,5 @@ numpy
 Pillow
 pdf2image
 PyPDF2
+opencv-python
+scipy
