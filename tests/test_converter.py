@@ -51,7 +51,6 @@ class TestRectangle(unittest.TestCase):
 
         _, temporary_pdf_path = mkstemp()
         converter.save_images_to_pdf([im1, im2], temporary_pdf_path)
-        print(temporary_pdf_path)
 
         # reconstruction of the first page
         image_reconstructed = converter.image_from_pdf_page(temporary_pdf_path, page_num=0, dpi=72, return_numpy=True)
