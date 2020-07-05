@@ -16,7 +16,4 @@ etc
 
 Main tool for reading pdf files is the PyPDF2 library.
 
-Apart of pip requirement, you should have the following dependencies installed:
-
-* Poppler 
-* Tesseract 
+Apart of pip requirement, you should have [Poppler](https://poppler.freedesktop.org/) installed. (We use of its `pdftotext`, and `pdftoppm` commands.)
