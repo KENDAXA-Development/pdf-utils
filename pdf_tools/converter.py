@@ -15,7 +15,8 @@ class RotatedPdfException(Exception):
 def image_from_pdf_page(pdf_path: str,
                         page_num: int,
                         dpi: int = 150,
-                        return_numpy: bool = True) -> Union[Image.Image, np.ndarray]:
+                        return_numpy: bool = True,
+                        rotate_by: int = 0) -> Union[Image.Image, np.ndarray]:
     """Return the requested page as a png-image PIL object (no file creation) or a numpy array.
 
     Page numbers are here counted from zero.
@@ -34,6 +35,8 @@ def image_from_pdf_page(pdf_path: str,
         use_cropbox=False,
         strict=False)
     img = images[0]
+    if rotate_by:
+        img = img.rotate(rotate_by, expand=True)
     if return_numpy:
         img = np.array(img)
     return img
