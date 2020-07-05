@@ -68,6 +68,13 @@ class Pdf:
 
         return abs(pdf_width), abs(pdf_height)
 
+    def page_rotation(self, page_idx: int) -> bool:
+        """Expose self._rotated."""
+        if page_idx in self._rotated:
+            return self._rotated[page_idx]
+        self._rotated[page_idx] = self.pdf_reader.getPage(page_idx).get("/Rotate", 0)
+        return self._rotated[page_idx]
+
     def page_image(self,
                    page_idx: int = 0,
                    dpi: int = 150,
@@ -98,12 +105,10 @@ class Pdf:
                                     f"page = ({img_w, img_h}), pdf = {(w, h)}")
         return img
 
-    def page_rotation(self, page_idx: int) -> bool:
-        """Expose self._rotated."""
-        if page_idx in self._rotated:
-            return self._rotated[page_idx]
-        self._rotated[page_idx] = self.pdf_reader.getPage(page_idx).get("/Rotate", 0)
-        return self._rotated[page_idx]
+    @property
+    def images(self) -> List[Image.Image]:
+        """Return all images as a list."""
+        return [self.page_image(page_idx) for page_idx in range(self.number_of_pages)]
 
     def get_simple_text(self) -> str:
         """Uses `pdftotext` to extract textual content."""
@@ -146,11 +151,6 @@ class Pdf:
             y_min=elem.attrib["ymin"],
             x_max=elem.attrib["xmax"],
             y_max=elem.attrib["ymax"])
-
-    @property
-    def images(self) -> List[Image.Image]:
-        """Return all images as a list."""
-        return [self.page_image(page_idx) for page_idx in range(self.number_of_pages)]
 
     def __enter__(self):
         return self
