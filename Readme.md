@@ -1,7 +1,7 @@
 ## Tools for processing pdf files
 
 This is a small and light-weighted library for processing pdf files in python.
-One of the use-cases might be the extracrtion of pdf-annotations for ML / NLP.
+One of the use-cases might be the extraction of pdf-annotations for ML / NLP.
 
 * obtaining textual and vizual content of pdf files
 * locating positions of words
