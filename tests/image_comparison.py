@@ -5,7 +5,7 @@ from scipy.stats import pearsonr
 import cv2
 
 
-def naive_image_similarity(im1: np.ndarray, im2: np.ndarray, kernel:Tuple = (7, 7)):
+def naive_image_similarity(im1: np.ndarray, im2: np.ndarray, kernel:Tuple = (7, 7)) -> float:
     """Naive similarity of two images.
 
     We first apply a Gaussian filter, then flatten the images and return Pearsson correlation.
