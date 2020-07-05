@@ -86,7 +86,7 @@ class Rectangle:
         return other.x_min >= self.x_min and other.x_max <= self.x_max and (
             other.y_min >= self.y_min and other.y_max <= self.y_max)
 
-    def rescale(self, multiply_width_by, multiply_height_by):
+    def rescale(self, multiply_width_by, multiply_height_by) -> Rectangle:
         """Multiplies horizontal and vertical ranges by constants."""
         return Rectangle(
             x_min=self.x_min * multiply_width_by,
@@ -95,7 +95,7 @@ class Rectangle:
             y_max=self.y_max * multiply_height_by
         )
 
-    def to_int(self):
+    def to_int(self) -> Rectangle:
         return Rectangle(**self.as_dict, dtype=int)
 
     def relative_to_size(self, width, height) -> Rectangle:
