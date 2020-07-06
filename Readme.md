@@ -9,9 +9,7 @@ Support for
 * locating positions of words
 * fetching pdf annotations
 * adding digital layer to image-pdfs
-* re-creating a clean pdf file with annotations removed
-* creating an pdf file from images
-* adding textual layer to image-pdf
+* re-creating a clean pdf file with annotations removed,
 
 etc
 
