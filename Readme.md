@@ -3,12 +3,15 @@
 This is a small and light-weighted library for processing pdf files in python.
 One of the use-cases might be the extraction of pdf-annotations for ML / NLP.
 
+Support for
+
 * obtaining textual and vizual content of pdf files
 * locating positions of words
 * fetching pdf annotations
 * adding digital layer to image-pdfs
 * re-creating a clean pdf file with annotations removed
 * creating an pdf file from images
+* adding textual layer to image-pdf
 
 etc
 
