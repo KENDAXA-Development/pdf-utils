@@ -1,7 +1,7 @@
 """Various basic tools for conversions between pdf's, text, images and words and word indices."""
 import logging
-import subprocess
 import shutil
+import subprocess
 from pathlib import Path
 from tempfile import mkdtemp
 from typing import Union, List, Tuple, Dict
@@ -9,11 +9,11 @@ from typing import Union, List, Tuple, Dict
 import numpy as np
 import pdf2image
 import pytesseract
-from reportlab.pdfgen.canvas import Canvas
-from reportlab.lib.utils import ImageReader
 from PIL import Image
+from reportlab.lib.utils import ImageReader
+from reportlab.pdfgen.canvas import Canvas
 
-from .rectangle import Rectangle
+from pdf_tools.rectangle import Rectangle
 
 
 class RotatedPdfException(Exception):
