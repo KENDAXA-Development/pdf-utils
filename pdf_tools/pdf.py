@@ -16,7 +16,8 @@ class CannotReadPdf(Exception):
 
 
 class Pdf:
-    """Tools to process one pdf file."""
+    """Process one pdf file."""
+
     parser = html.HTMLParser(encoding="utf-8")
 
     def __init__(self, pdf_path: str) -> None:
