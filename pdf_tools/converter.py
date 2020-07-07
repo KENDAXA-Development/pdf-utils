@@ -1,3 +1,7 @@
+"""
+Various basic tools for conversions between pdf's, text, images and words and word indices.
+The most basic conversion function are just wrappers around the Poppler utils `pdftotext` and `pdftoppm`.
+"""
 from typing import Union, List, Optional, Tuple, Dict
 import subprocess
 
