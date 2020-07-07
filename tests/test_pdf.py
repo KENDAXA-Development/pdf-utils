@@ -1,14 +1,14 @@
-import unittest
 import re
+import unittest
 from pathlib import Path
 
 import numpy as np
 from PIL import Image
 from lxml import html
+from tests.image_comparison import naive_image_similarity
 
 from pdf_tools.pdf import Pdf
 from pdf_tools.rectangle import Rectangle
-from tests.image_comparison import naive_image_similarity
 
 
 class TestPdf(unittest.TestCase):

@@ -1,11 +1,11 @@
 from typing import Tuple
 
+import cv2
 import numpy as np
 from scipy.stats import pearsonr
-import cv2
 
 
-def naive_image_similarity(im1: np.ndarray, im2: np.ndarray, kernel:Tuple = (7, 7)) -> float:
+def naive_image_similarity(im1: np.ndarray, im2: np.ndarray, kernel: Tuple = (7, 7)) -> float:
     """Naive similarity of two images, represented as 2- or 3-dimensional numpy arrays.
 
     We first apply a Gaussian filter, then flatten the images and return Pearsson correlation.

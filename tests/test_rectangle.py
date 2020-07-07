@@ -121,6 +121,6 @@ class TestRectangle(unittest.TestCase):
         expected_normalization_1 = Rectangle(x_min=100.0, y_min=1.0, x_max=120.0, y_max=4.0)
         expected_normalization_2 = Rectangle(x_min=0.0, y_min=0.0, x_max=5.0, y_max=5.0)
 
-        self.assertTrue(
-            normalization == [expected_normalization_1, expected_normalization_2] or \
-            normalization == [expected_normalization_2, expected_normalization_1])
+        self.assertTrue(any([
+            normalization == [expected_normalization_1, expected_normalization_2],
+            normalization == [expected_normalization_2, expected_normalization_1]]))

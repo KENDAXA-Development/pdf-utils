@@ -1,17 +1,15 @@
-import unittest
-from tempfile import mkstemp
 import os
 import re
+import unittest
 from pathlib import Path
+from tempfile import mkstemp
 
-from PIL import Image
 import numpy as np
-
+from PIL import Image
+from tests.image_comparison import naive_image_similarity
 
 from pdf_tools import converter
 from pdf_tools.rectangle import Rectangle
-from tests.image_comparison import naive_image_similarity
-
 
 
 class TestRectangle(unittest.TestCase):
@@ -31,7 +29,6 @@ class TestRectangle(unittest.TestCase):
     def test_pdf_box_to_image_box(self):
         pdf_box = Rectangle(10, 10, 20, 30)
         image_box_1 = Rectangle(100, 100, 200, 300)
-        image_box_2 = Rectangle(100, 100, 300, 200)
 
         pdf_box_converted = converter.pdf_box_to_image_box(
             pdf_box=pdf_box, pdf_width=50, pdf_height=100, img_width=500, img_height=1000)
@@ -44,9 +41,10 @@ class TestRectangle(unittest.TestCase):
             converter.pdf_box_to_image_box,
             pdf_box=pdf_box, pdf_width=50, pdf_height=100, img_width=1000, img_height=500)
 
-
     def test_images_to_pdf(self):
-        """We take two images and create a pdf out of it.
+        """Create pdf from images and back to images and check consistency.
+
+        We take two images and create a pdf out of it.
         Then we convert this pdf to images and check that first page should be similar to the original first image.
         """
         im1 = Image.open(self.first_page_150_dpi)

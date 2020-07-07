@@ -1,6 +1,7 @@
 from __future__ import annotations
-from typing import Dict, Optional, List
+
 import logging
+from typing import Dict, Optional, List
 
 import numpy as np
 from lxml import html
@@ -8,7 +9,7 @@ from lxml import html
 
 class Rectangle:
     """
-    Data class for storing bounding boxes
+    Data class for storing bounding boxes.
 
     The need of this arose to remove ambiguity about what is width and what is height, in a 4-tuple.
     """
@@ -87,7 +88,7 @@ class Rectangle:
 
     @staticmethod
     def from_image(im: np.ndarray) -> Rectangle:
-        """Takes a numpy array-image and returns the full image bounding box as a Rectangle."""
+        """Take a numpy array-image and returns the full image bounding box as a Rectangle."""
         height, width = im.shape[:2]
         return Rectangle(x_min=0, y_min=0, x_max=width, y_max=height, dtype=int)
 
@@ -115,24 +116,24 @@ class Rectangle:
         return self.rescale(multiply_width_by=1 / width, multiply_height_by=1 / height)
 
     def intersection(self, other: Rectangle) -> Optional[Rectangle]:
-        """Returns interscetion Rectangle if nontrivial, else None."""
-        x_min=max(self.x_min, other.x_min)
-        y_min=max(self.y_min, other.y_min)
-        x_max=min(self.x_max, other.x_max)
-        y_max=min(self.y_max, other.y_max)
+        """Return interscetion Rectangle if nontrivial, else None."""
+        x_min = max(self.x_min, other.x_min)
+        y_min = max(self.y_min, other.y_min)
+        x_max = min(self.x_max, other.x_max)
+        y_max = min(self.y_max, other.y_max)
         if x_min > x_max or y_min > y_max:
             return None
         return Rectangle(x_min=x_min, y_min=y_min, x_max=x_max, y_max=y_max)
 
     def get_iou(self, rect: Rectangle) -> float:
-        """Compute Intersection over Union."""
+        """Compute intersection over union."""
         inter = self.intersection(rect)
         if not inter:
             return 0
         return inter.area / float(self.area + rect.area - inter.area)
 
     def smallest_common_superrectangle(self, other: Rectangle) -> Rectangle:
-        """Returns a rectangle containing both self and other."""
+        """Return a rectangle containing both self and other."""
         return Rectangle(
             x_min=min(self.x_min, other.x_min),
             y_min=min(self.y_min, other.y_min),
@@ -168,4 +169,3 @@ class Rectangle:
 
     def __repr__(self) -> str:
         return f"<Rectangle(x_min={self.x_min}, y_min={self.y_min}, x_max={self.x_max}, y_max={self.y_max})>"
-

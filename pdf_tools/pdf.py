@@ -155,7 +155,7 @@ class Pdf:
         """Return a dictionary {page_num : list_of_words (as strings)}."""
         return {
             page_nr: list(map(lambda w: w.text if w.text is not None else "", words))
-            for page_nr, words  in self.get_pages().items() }
+            for page_nr, words in self.get_pages().items()}
 
     @staticmethod
     def get_bounding_box_of_elem(elem: html.HtmlElement) -> Rectangle:
