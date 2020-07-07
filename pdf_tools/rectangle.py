@@ -78,14 +78,6 @@ class Rectangle:
         h_half = height / 2
         return Rectangle(x_center - w_half, y_center - h_half, x_center + w_half, y_center + h_half)
 
-    @classmethod
-    def from_html_element(cls, elem: html.Element) -> Rectangle:
-        return Rectangle(
-            x_min=elem.attrib["xmin"],
-            y_min=elem.attrib["ymin"],
-            x_max=elem.attrib["xmax"],
-            y_max=elem.attrib["ymax"])
-
     @staticmethod
     def from_image(im: np.ndarray) -> Rectangle:
         """Take a numpy array-image and returns the full image bounding box as a Rectangle."""
