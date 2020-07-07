@@ -94,8 +94,8 @@ def extract_text_from_pdf(pdf_path: str, pdftotext_layout_argument: Optional[str
 
 
 def get_indices_of_words(words: List[str], char_span: Tuple[int, int]) -> Dict:
-    """
-    Given a list of words and a span of 'matched characters', we compute here which words are matched
+    """Given a list of words and a span of 'matched characters', compute which words are matched.
+
     :param words: list of words (strings)
     :param char_span: a tuple (lower_index, upper_index) denoting character span of text segment within ' '.join(words)
     lower_index is inclusive, upper_index is exclusive
