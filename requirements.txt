@@ -4,4 +4,6 @@ Pillow
 pdf2image
 PyPDF2
 opencv-python
+pytesseract
+reportlab
 scipy
