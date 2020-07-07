@@ -156,16 +156,18 @@ def convert_image_list_to_searchable_pdf(images: List[Image.Image],
     for page_idx, im in enumerate(images):
         current_tmp_path = str(Path(td) / f"{page_idx}.pdf")
         tmp_paths.append(current_tmp_path)
+        logging.info(f"Tesseracting page {page_idx}...")
         image_to_one_page_ocred_pdf(
             im,
             pdf_path=current_tmp_path,
-            ocr_text = ocr_one_image(im, tesseract_lang, tesseract_config),
+            ocr_text=ocr_one_image(im, tesseract_lang, tesseract_config),
             output_pdf_width=output_pdf_width)
 
     # combine single-page pdfs into one
     subprocess.run([
         "pdfunite", *tmp_paths, pdf_path
     ])
+    # cleanup
     shutil.rmtree(td)
 
 
