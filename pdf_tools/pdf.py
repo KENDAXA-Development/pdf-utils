@@ -13,7 +13,7 @@ from pdf_tools.rectangle import Rectangle
 
 
 class CannotReadPdf(Exception):
-    """PyPDF2 cannot read the pdf"""
+    """PyPDF2 cannot read the pdf."""
 
 
 class Pdf:
@@ -36,8 +36,8 @@ class Pdf:
         self._images = {}
         self._rotated = {}
 
-        self._simple_text = None # results of simple pdftotext
-        self._layout_text = None # result of pdftotext with -layout param
+        self._simple_text = None  # results of simple pdftotext
+        self._layout_text = None  # result of pdftotext with -layout param
         # root of the xml tree representing the `pdftotext -bbox-layout output that includes bounding boxes of words
         self._root = None
 
@@ -125,13 +125,13 @@ class Pdf:
             pdftotext_args + [str(self.pdf_path), "-"], universal_newlines=True)
 
     def get_simple_text(self) -> str:
-        """Uses `pdftotext` to extract textual content."""
+        """Use `pdftotext` to extract textual content."""
         if self._simple_text is None:
             self._simple_text = self._extract_text_from_pdf()
         return self._simple_text
 
     def get_layout_text(self) -> str:
-        """Uses `pdftotext -layout` to extract textual content."""
+        """Use `pdftotext -layout` to extract textual content."""
         if self._layout_text is None:
             self._layout_text = self._extract_text_from_pdf("-layout")
         return self._layout_text
@@ -144,7 +144,7 @@ class Pdf:
         return self._root
 
     def get_pages(self) -> Dict[int, List[html.HtmlElement]]:
-        """Return a dictionary {page_num: list_of_words (as xml elements)}"""
+        """Return a dictionary {page_num: list_of_words (as xml elements)}."""
         res = {}
         root = self.get_text_with_bb()
         for page_num, page in enumerate(root.findall(".//page")):
@@ -152,7 +152,7 @@ class Pdf:
         return res
 
     def get_pages_as_text(self) -> Dict[int, List[str]]:
-        """returns a dictionary {page_num : list_of_words (as strings)}"""
+        """Return a dictionary {page_num : list_of_words (as strings)}."""
         return {
             page_nr: list(map(lambda w: w.text if w.text is not None else "", words))
             for page_nr, words  in self.get_pages().items() }

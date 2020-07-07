@@ -1,16 +1,31 @@
 from os import path
-from setuptools import setup, find_packages
+from typing import Union, List
+from setuptools import setup
+import io, os
 
 
 PATH_HERE = path.abspath(path.dirname(__file__))
+#
+# # Get the long description from the README file
+# with open(path.join(PATH_HERE, 'README.md'), encoding='utf-8') as fp:
+#     long_description = fp.read()
+#
+# # Get the list of required packages
+# with open(path.join(PATH_HERE, "requirements.txt"), encoding="utf-8") as fp:
+#     requirements = [req.rstrip() for req in fp.readlines() if "-r" not in req]
 
-# Get the long description from the README file
-with open(path.join(PATH_HERE, 'README.md'), encoding='utf-8') as fp:
-    long_description = fp.read()
 
-# Get the list of required packages
-with open(path.join(PATH_HERE, "requirements.txt"), encoding="utf-8") as fp:
-    requirements = [req.rstrip() for req in fp.readlines() if "-r" not in req]
+def read(f_relative_path: str, read_lines: bool = False) -> Union[List[str], str]:
+    """Return the contents of file f_relative_path as a string, or a list of strings if read_lines is True.
+
+    :param f_relative_path: the file path relative to this script folder.
+    :param read_lines: if True return list of lines, else return a single string.
+    :return: the content of the file.
+    """
+    here = os.path.dirname(os.path.abspath(__file__))
+    with io.open(os.path.join(here, f_relative_path), mode="rt", encoding="utf8") as f:
+        return f.readlines() if read_lines else f.read()
+
 
 setup(
     name='pdf_tools',
@@ -20,7 +35,7 @@ setup(
     author_email="develop@kendaxa.com",
 
     description='tools for reading and processing pdf content',
-    long_description=long_description,
+    long_description=read("README.md"),
     long_description_content_type='text/x-rst',
     classifiers=[
         'Development Status :: 3 - Alpha',
@@ -34,7 +49,7 @@ setup(
     ],
 
     packages=["pdf_tools"],
-    python_requires='>=3.6',
     include_package_data=True,
-    install_requires=requirements,
+    python_requires='>=3.6',
+    install_requires=read("requirements.txt", read_lines=True),
 )

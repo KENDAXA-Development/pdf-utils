@@ -13,11 +13,12 @@ from tests.image_comparison import naive_image_similarity
 
 class TestPdf(unittest.TestCase):
 
-    pdf = Pdf("data_git/example.pdf")
-    pdf_rotated = Pdf("data_git/example_rotated.pdf")
+    here = Path(__file__).parent
+    pdf = Pdf(here / "data_git" / "example.pdf")
+    pdf_rotated = Pdf(here / "data_git" / "example_rotated.pdf")
 
     def test_basic_attributes(self):
-        self.assertEqual(self.pdf.pdf_path, Path("data_git/example.pdf"))
+        self.assertEqual(self.pdf.pdf_path, self.here / "data_git" / "example.pdf")
         self.assertEqual(self.pdf.name, "example.pdf")
         self.assertEqual(self.pdf.number_of_pages, 2)
 
@@ -52,7 +53,9 @@ class TestPdf(unittest.TestCase):
         )
         # first page should be similar to the precomputed image from disc
         self.assertGreater(
-            naive_image_similarity(np.array(im_1), np.array(Image.open("data_git/example_150-1.png"))),
+            naive_image_similarity(
+                np.array(im_1),
+                np.array(Image.open(str(self.here / "data_git" / "example_150-1.png")))),
             0.98
         )
 

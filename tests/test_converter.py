@@ -2,20 +2,24 @@ import unittest
 from tempfile import mkstemp
 import os
 import re
+from pathlib import Path
 
 from PIL import Image
 import numpy as np
+
 
 from pdf_tools import converter
 from pdf_tools.rectangle import Rectangle
 from tests.image_comparison import naive_image_similarity
 
 
+
 class TestRectangle(unittest.TestCase):
 
-    sample_pdf_path = "data_git/example.pdf"
-    first_page_150_dpi = "data_git/example_150-1.png"
-    second_page_150_dpi = "data_git/example_150-2.png"
+    here = Path(__file__).parent
+    sample_pdf_path = str(here / "data_git" / "example.pdf")
+    first_page_150_dpi = str(here / "data_git" / "example_150-1.png")
+    second_page_150_dpi = str(here / "data_git" / "example_150-2.png")
 
     def test_image_from_pdf_page(self):
         im_1 = np.array(Image.open(self.first_page_150_dpi))

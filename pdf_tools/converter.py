@@ -1,9 +1,8 @@
-"""
-Various basic tools for conversions between pdf's, text, images and words and word indices.
+"""Various basic tools for conversions between pdf's, text, images and words and word indices.
+
 The most basic conversion function are just wrappers around the Poppler utils `pdftotext` and `pdftoppm`.
 """
-from typing import Union, List, Optional, Tuple, Dict
-import subprocess
+from typing import Union, List, Tuple, Dict
 
 import numpy as np
 import pdf2image
@@ -13,7 +12,7 @@ from .rectangle import Rectangle
 
 
 class RotatedPdfException(Exception):
-    """Ratio of pdf-width / pdf_height does not agree with the ratio image_width / image_height"""
+    """Ratio of pdf-width / pdf_height does not agree with the ratio image_width / image_height."""
 
 
 def image_from_pdf_page(pdf_path: str,
@@ -73,7 +72,7 @@ def pdf_box_to_image_box(pdf_box: Rectangle,
 
 
 def save_images_to_pdf(images: List[Image.Image], output_pdf: str) -> None:
-    """Saves a list of images as a vanilla image-pdf (no text content), each image on one page."""
+    """Save a list of images as a vanilla image-pdf (no text content), each image on one page."""
     images[0].save(output_pdf, "PDF", save_all=True, append_images=images[1:])
 
 
@@ -97,7 +96,7 @@ def get_indices_of_words(words: List[str], char_span: Tuple[int, int]) -> Dict:
             partial_words.append(i)
         else:  # no intersection
             pass
-        ind += len(w) + 1 # update counter
+        ind += len(w) + 1  # update counter
     return {
         "full_words": full_words,
         "partial_words": partial_words
