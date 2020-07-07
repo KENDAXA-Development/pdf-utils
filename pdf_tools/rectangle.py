@@ -62,7 +62,10 @@ class Rectangle:
         return Rectangle(**rect_dict, dtype=dtype)
 
     def to_coco(self, rounding: Optional[int] = 2) -> Dict:
-        """Convert to a dictionary with keys x_center, y_center, width, height."""
+        """Convert to a dictionary with keys x_center, y_center, width, height.
+
+        :param rounding: how many decimal places to use for the resulting floats
+        """
         x_center, y_center = self.center
         return {
             "x_center": x_center if rounding is None else round(x_center, rounding),
@@ -72,16 +75,16 @@ class Rectangle:
         }
 
     @classmethod
-    def from_coco(cls, x_center, y_center, width, height, **kwargs) -> Rectangle:
-        """Crete a rectangle from center and width and height."""
+    def from_coco(cls, x_center, y_center, width, height) -> Rectangle:
+        """Create a rectangle from center and width and height."""
         w_half = width / 2
         h_half = height / 2
         return Rectangle(x_center - w_half, y_center - h_half, x_center + w_half, y_center + h_half)
 
     @staticmethod
-    def from_image(im: np.ndarray) -> Rectangle:
+    def from_image(img: np.ndarray) -> Rectangle:
         """Take a numpy array-image and returns the full image bounding box as a Rectangle."""
-        height, width = im.shape[:2]
+        height, width = img.shape[:2]
         return Rectangle(x_min=0, y_min=0, x_max=width, y_max=height, dtype=int)
 
     def contains_other(self, other: Rectangle) -> bool:
@@ -135,7 +138,7 @@ class Rectangle:
 
     def intersection_width_some_other(self, others: List[Rectangle]) -> bool:
         """Return True if some of the other rectangles intersects this rectangle, False otherwise."""
-        return any([self.intersection(other) for other in others])
+        return any(self.intersection(other) for other in others)
 
     @staticmethod
     def normalize_list_of_rectangles(rectangles: List[Rectangle]) -> List[Rectangle]:
