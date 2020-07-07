@@ -1,10 +1,55 @@
-**/__pycache__
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.cpp
+*.so
+
+# installed libraries
+libs/
+
+# temporary structure
+build/
+output/
+results/
+temporary/
+temp/
+.nfs*
+
+# PyCharm
+.idea/
+
+# Jupyter notebook
+.ipynb_checkpoints
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+pytest.*
+.pytest_cache
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Environment
+env/
+venv/
+
+
+# Packaging
+dist/
+pdf_tools.egg-info/
+
+# MacOS and general nonsense
 **/.DS_Store
-**/.ipynb_checkpoints
 **/tmp
+
+# Local data
 data
-local
-.idea
-venv
-build
-dist
+
