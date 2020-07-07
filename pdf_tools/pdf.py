@@ -1,13 +1,14 @@
 import logging
+import subprocess
 from pathlib import Path
-from typing import Tuple, List, Union, Dict
+from typing import Tuple, List, Union, Dict, Optional
 
 import numpy as np
 from PIL import Image
 from PyPDF2 import PdfFileReader
 from lxml import html
 
-from pdf_tools.converter import image_from_pdf_page, extract_text_from_pdf
+from pdf_tools.converter import image_from_pdf_page
 from pdf_tools.rectangle import Rectangle
 
 
@@ -111,22 +112,34 @@ class Pdf:
         """Return all images as a list."""
         return [self.page_image(page_idx) for page_idx in range(self.number_of_pages)]
 
+    def _extract_text_from_pdf(self, pdftotext_layout_argument: Optional[str] = None) -> str:
+        """Get textual pdf content. Wrapper of Poppler's pdftotext.
+
+        :param pdftotext_layout_argument: None, "-layout" or "-bbox-layout". Argument passed to the pdftotext
+        :return: pdftotext result
+        """
+        pdftotext_args = ["pdftotext", "-enc", "UTF-8"]
+        if pdftotext_layout_argument is not None:
+            pdftotext_args.append(pdftotext_layout_argument)
+        return subprocess.check_output(
+            pdftotext_args + [str(self.pdf_path), "-"], universal_newlines=True)
+
     def get_simple_text(self) -> str:
         """Uses `pdftotext` to extract textual content."""
         if self._simple_text is None:
-            self._simple_text = extract_text_from_pdf(str(self.pdf_path))
+            self._simple_text = self._extract_text_from_pdf()
         return self._simple_text
 
     def get_layout_text(self) -> str:
         """Uses `pdftotext -layout` to extract textual content."""
         if self._layout_text is None:
-            self._layout_text = extract_text_from_pdf(str(self.pdf_path), "-layout")
+            self._layout_text = self._extract_text_from_pdf("-layout")
         return self._layout_text
 
     def get_text_with_bb(self) -> html.HtmlElement:
         """Get textual content including bounding boxes of each word, represented as the root of the xml tree."""
         if self._root is None:
-            bbox_text = extract_text_from_pdf(str(self.pdf_path), "-bbox-layout")
+            bbox_text = self._extract_text_from_pdf("-bbox-layout")
             self._root = html.fromstring(bbox_text, parser=self.parser)
         return self._root
 

@@ -23,9 +23,7 @@ def image_from_pdf_page(pdf_path: str,
                         rotate_by: int = 0) -> Union[Image.Image, np.ndarray]:
     """Return the requested page as a png-image PIL object (no file creation) or a numpy array.
 
-    Page numbers are here counted from zero.
-
-    https://iq.opengenus.org/pdf_to_image_in_python/
+    Page numbers are counted from zero.
     """
     images = pdf2image.convert_from_path(
         pdf_path,
@@ -75,22 +73,8 @@ def pdf_box_to_image_box(pdf_box: Rectangle,
 
 
 def save_images_to_pdf(images: List[Image.Image], output_pdf: str) -> None:
-    """Saves a list of images as a vanilla image-pdf (no text content), each image one page."""
+    """Saves a list of images as a vanilla image-pdf (no text content), each image on one page."""
     images[0].save(output_pdf, "PDF", save_all=True, append_images=images[1:])
-
-
-def extract_text_from_pdf(pdf_path: str, pdftotext_layout_argument: Optional[str] = None) -> str:
-    """Wrapper of Poppler's pdftotext.
-
-    :param pdf_path: pdf file path
-    :param pdftotext_layout_argument: None, "-layout" or "-bbox-layout". Argument passed to the pdftotext
-    :return: pdftotext result
-    """
-    pdftotext_args = ["pdftotext", "-enc", "UTF-8"]
-    if pdftotext_layout_argument is not None:
-        pdftotext_args.append(pdftotext_layout_argument)
-    return subprocess.check_output(
-        pdftotext_args + [str(pdf_path), "-"], universal_newlines=True)
 
 
 def get_indices_of_words(words: List[str], char_span: Tuple[int, int]) -> Dict:

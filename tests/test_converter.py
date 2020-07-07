@@ -5,7 +5,6 @@ import re
 
 from PIL import Image
 import numpy as np
-from lxml import html
 
 from pdf_tools import converter
 from pdf_tools.rectangle import Rectangle
@@ -65,50 +64,6 @@ class TestRectangle(unittest.TestCase):
         self.assertLess(naive_image_similarity(image_reconstructed, np.array(im2)), 0.3)
 
         os.remove(temporary_pdf_path)
-
-    def test_text_extraction_from_pdf(self):
-        """This is essentially testing pdftotext (probably coming from Poppler, of Xpdf)."""
-        simple_text = converter.extract_text_from_pdf(self.sample_pdf_path)
-        layout_text = converter.extract_text_from_pdf(self.sample_pdf_path, "-layout")
-        # xml with bounding boxes of words
-        bbox_xml = converter.extract_text_from_pdf(self.sample_pdf_path, "-bbox-layout")
-        parser = html.HTMLParser(encoding="utf-8")
-        root = html.fromstring(bbox_xml, parser=parser)
-
-        # list of strings (one per page)
-        simple_pages = [page for page in simple_text.split("\f") if page]
-        layout_pages = [page for page in layout_text.split("\f") if page]
-
-        # We have two pages in the pdf
-        self.assertEqual(len(simple_pages), 2)
-        self.assertEqual(len(layout_pages), 2)
-        self.assertEqual(len(root.findall(".//page")), 2)
-
-        # Test that first page contain expected words
-        words_in_first_page = set(simple_pages[0].split())
-        self.assertTrue({"Lorem", "ipsum", "Aron", "killed", "pf@kendaxa.com"}.issubset(words_in_first_page))
-        self.assertFalse({"Autobahn", "Das", "The", "name", "hungry", "kendaxa@kendaxa.com"} & words_in_first_page)
-
-        # this regex should be matched in a reasonably extracted layout-first-page-text
-        self.assertTrue(re.search(r"Stolen\s+bike\s+500\s+Euro\s+3%", layout_pages[0]))
-        self.assertTrue(re.search(r"impuls@faktor.net\s*\n", layout_pages[1]))
-
-        # Find bounding box of 'extreme' word on first page
-        extreme_element = root.xpath(".//word[text()='extreme']")[0]
-        extreme_bb = Rectangle(
-            x_min=extreme_element.attrib["xmin"],
-            y_min=extreme_element.attrib["ymin"],
-            x_max=extreme_element.attrib["xmax"],
-            y_max=extreme_element.attrib["ymax"])
-
-        # Check that the bounding box is reasonable
-        self.assertTrue(
-            extreme_bb in Rectangle(
-                x_min=220,
-                y_min=530,
-                x_max=290,
-                y_max=590
-            ))
 
     def test_indices_of_words(self):
         words = [

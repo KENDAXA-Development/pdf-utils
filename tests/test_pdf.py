@@ -1,4 +1,5 @@
 import unittest
+import re
 from pathlib import Path
 
 import numpy as np
@@ -6,7 +7,6 @@ from PIL import Image
 from lxml import html
 
 from pdf_tools.pdf import Pdf
-from pdf_tools.converter import extract_text_from_pdf
 from pdf_tools.rectangle import Rectangle
 from tests.image_comparison import naive_image_similarity
 
@@ -63,14 +63,50 @@ class TestPdf(unittest.TestCase):
         self.assertEqual(im_1, images[0])
         self.assertEqual(im_rot_1, images_rotated[0])
 
-    def test_text_extraction(self):
-        simple = self.pdf.get_simple_text()
-        layout = self.pdf.get_layout_text()
+    def test_text_extraction_from_pdf(self):
+        """This is essentially testing pdftotext (probably coming from Poppler, of Xpdf)."""
+        simple_text = self.pdf.get_simple_text()
+        layout_text = self.pdf.get_layout_text()
+        # xml with bounding boxes of words
         root = self.pdf.get_text_with_bb()
 
-        # the extraction itself is tested in the `test_converter` module
-        self.assertEqual(simple, extract_text_from_pdf(self.pdf.pdf_path))
-        self.assertEqual(layout, extract_text_from_pdf(self.pdf.pdf_path, "-layout"))
+        # list of strings (one per page)
+        simple_pages = [page for page in simple_text.split("\f") if page]
+        layout_pages = [page for page in layout_text.split("\f") if page]
+
+        # We have two pages in the pdf
+        self.assertEqual(len(simple_pages), 2)
+        self.assertEqual(len(layout_pages), 2)
+        self.assertEqual(len(root.findall(".//page")), 2)
+
+        # Test that first page contain expected words
+        words_in_first_page = set(simple_pages[0].split())
+        self.assertTrue({"Lorem", "ipsum", "Aron", "killed", "pf@kendaxa.com"}.issubset(words_in_first_page))
+        self.assertFalse({"Autobahn", "Das", "The", "name", "hungry", "kendaxa@kendaxa.com"} & words_in_first_page)
+
+        # this regex should be matched in a reasonably extracted layout-first-page-text
+        self.assertTrue(re.search(r"Stolen\s+bike\s+500\s+Euro\s+3%", layout_pages[0]))
+        self.assertTrue(re.search(r"impuls@faktor.net\s*\n", layout_pages[1]))
+
+        # Find bounding box of 'extreme' word on first page
+        extreme_element = root.xpath(".//word[text()='extreme']")[0]
+        extreme_bb = Rectangle(
+            x_min=extreme_element.attrib["xmin"],
+            y_min=extreme_element.attrib["ymin"],
+            x_max=extreme_element.attrib["xmax"],
+            y_max=extreme_element.attrib["ymax"])
+
+        # Check that the bounding box is reasonable
+        self.assertTrue(
+            extreme_bb in Rectangle(
+                x_min=220,
+                y_min=530,
+                x_max=290,
+                y_max=590
+            ))
+
+    def test_text_extraction_from_rotated_pdf(self):
+        root = self.pdf.get_text_with_bb()
 
         # here we at least check the type
         self.assertTrue(isinstance(root, html.HtmlElement))
