@@ -1,9 +1,5 @@
 """Various basic tools for conversions between pdf's, text, images and words and word indices."""
-import logging
-import shutil
 import subprocess
-from pathlib import Path
-from tempfile import mkdtemp
 from typing import Union, List, Tuple, Dict
 
 import numpy as np
@@ -102,37 +98,10 @@ def ocr_one_image(im: Image.Image,
             })
     return result
 
-#
-# def convert_image_list_to_searchable_pdf(images: List[Image.Image],
-#                                          pdf_path: str,
-#                                          output_pdf_width: int,
-#                                          tesseract_lang: str = "eng",
-#                                          tesseract_config: str = "--psm 12 --oem 3"
-#                                          ):
-#     """Create a pdf from images with digital content comming from pytesseract."""
-#     td, tmp_paths = mkdtemp(), []
-#     for page_idx, im in enumerate(images):
-#         current_tmp_path = str(Path(td) / f"{page_idx}.pdf")
-#         tmp_paths.append(current_tmp_path)
-#         logging.info(f"Tesseracting page {page_idx}...")
-#         image_to_one_page_ocred_pdf(
-#             im,
-#             pdf_path=current_tmp_path,
-#             ocr_text=ocr_one_image(im, tesseract_lang, tesseract_config),
-#             output_pdf_width=output_pdf_width)
-#
-#     # combine single-page pdfs into one
-#     subprocess.run([
-#         "pdfunite", *tmp_paths, pdf_path
-#     ])
-#     # cleanup
-#     shutil.rmtree(td)
-
 
 def combine_pdfs_into_one(output_pdf_path, *pdf_paths):
     """Merge pdfs."""
-    subprocess.run([
-            "pdfunite", *pdf_paths, output_pdf_path])
+    subprocess.run(["pdfunite", *pdf_paths, output_pdf_path])
 
 
 def get_indices_of_words(words: List[str], char_span: Tuple[int, int]) -> Dict:

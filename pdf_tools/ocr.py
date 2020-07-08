@@ -1,8 +1,8 @@
 """Tesseracting images and converting them to pdf."""
 from typing import Dict, List
 
-from PIL import Image
 import pytesseract
+from PIL import Image
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen.canvas import Canvas
 

@@ -4,9 +4,9 @@ Main methods support extracting textual content, extracting images, localizing p
 extracting annotations, and converting an image-like pdf into "searchable" pdf via doing ocr.
 """
 import logging
+import shutil
 import subprocess
 from pathlib import Path
-import shutil
 from tempfile import mkdtemp
 from typing import Tuple, List, Union, Dict, Optional
 
@@ -174,7 +174,8 @@ class Pdf:
                                  tesseract_conf: str = "") -> None:
         """Get images, do OCR and create a new pdf with new text layer.
 
-        Can be useful for documents which are only images. If there is a textual layer at the beginning, it will be lost.
+        Can be useful for documents which are only images.
+        If there is a textual layer at the beginning, it will be lost.
 
         :param output_pdf: path to the output pdf file
         :param images_dpi: resolution of images that will be used for ocr, and that will be inserted into the final pdf
@@ -191,13 +192,17 @@ class Pdf:
             current_pdf_name = str(Path(td) / f"{page_idx}.pdf")
             pdf_paths.append(current_pdf_name)
             pdf_width, pdf_height = self.get_width_height(page_idx)
-            img_for_ocr = img if higher_dpi_for_scan is None else self.page_image(
-                page_idx, dpi=higher_dpi_for_scan, recompute=True)
+            img_for_ocr = img
+            if higher_dpi_for_scan is not None:
+                if higher_dpi_for_scan < images_dpi:
+                    logging.warning("lower resolution is used for OCR than for insertion into the pdf; ocr can be bad")
+                img_for_ocr = self.page_image(page_idx, dpi=higher_dpi_for_scan, recompute=True)
             ocr_text = Scanner.ocr_one_image(img_for_ocr, tesseract_lang, tesseract_conf)
             Scanner.image_to_one_page_ocred_pdf(
                 img, current_pdf_name, pdf_width=pdf_width, pdf_height=pdf_height, ocr_text=ocr_text)
 
         combine_pdfs_into_one(output_pdf, *pdf_paths)
+        # cleanup
         shutil.rmtree(td)
 
     @staticmethod

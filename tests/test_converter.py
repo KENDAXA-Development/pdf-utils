@@ -79,4 +79,3 @@ class TestRectangle(unittest.TestCase):
         # 'about' and 'the' are fully matched, 'friendly-looking' is partially matched
         self.assertTrue(matched_words["full_words"], [5, 6])
         self.assertTrue(matched_words["partial_words"], [7])
-
