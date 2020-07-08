@@ -6,6 +6,8 @@ extracting annotations, and converting an image-like pdf into "searchable" pdf v
 import logging
 import subprocess
 from pathlib import Path
+import shutil
+from tempfile import mkdtemp
 from typing import Tuple, List, Union, Dict, Optional
 
 import numpy as np
@@ -13,7 +15,8 @@ from PIL import Image
 from PyPDF2 import PdfFileReader
 from lxml import html
 
-from pdf_tools.converter import image_from_pdf_page, convert_image_list_to_searchable_pdf
+from pdf_tools.converter import image_from_pdf_page, combine_pdfs_into_one
+from pdf_tools.ocr import Scanner
 from pdf_tools.rectangle import Rectangle
 
 
@@ -163,8 +166,10 @@ class Pdf:
             page_nr: list(map(lambda w: w.text if w.text is not None else "", words))
             for page_nr, words in self.get_pages().items()}
 
-    def recreate_digital_content(self, output_pdf: str,
-                                 output_pdf_width: Optional[int] = None,
+    def recreate_digital_content(self,
+                                 output_pdf: str,
+                                 images_dpi: int = 150,
+                                 higher_dpi_for_scan: Optional[int] = None,
                                  tesseract_lang: str = "eng",
                                  tesseract_conf: str = "") -> None:
         """Get images, do OCR and create a new pdf with new text layer.
@@ -172,19 +177,25 @@ class Pdf:
         Can be useful for documents which are only images. If there is a textual layer at the beginning, it will be lost.
 
         :param output_pdf: path to the output pdf file
-        :param output_pdf_width: with of the output pdf file. If None, with of the first page of initial pdf will be used.
+        :param images_dpi: resolution of images that will be used for ocr, and that will be inserted into the final pdf
+        :param higher_dpi_for_scan: if not None, higher resolution image will be created for ocr only
         :param tesseract_lang: language to expect
         :param tesseract_conf: tesseract configuration
         """
-        if output_pdf_width is None:
-            output_pdf_width = self.get_width_height(0)[0]
-        convert_image_list_to_searchable_pdf(
-            self.images,
-            output_pdf,
-            output_pdf_width,
-            tesseract_lang,
-            tesseract_conf
-        )
+        td, pdf_paths = mkdtemp(), []
+        for page_idx in range(self.number_of_pages):
+            img = self.page_image(dpi=images_dpi, recompute=True)  # this make take some time, but less than ocr
+            current_pdf_name = str(Path(td) / f"{page_idx}.pdf")
+            pdf_paths.append(current_pdf_name)
+            pdf_width, pdf_height = self.get_width_height(page_idx)
+            img_for_ocr = img if higher_dpi_for_scan is None else self.page_image(
+                page_idx, dpi=higher_dpi_for_scan, recompute=True)
+            ocr_text = Scanner.ocr_one_image(img_for_ocr, tesseract_lang, tesseract_conf)
+            Scanner.image_to_one_page_ocred_pdf(
+                img, current_pdf_name, pdf_width=pdf_width, pdf_height=pdf_height, ocr_text=ocr_text)
+
+        combine_pdfs_into_one(output_pdf, *pdf_paths)
+        shutil.rmtree(td)
 
     @staticmethod
     def get_bounding_box_of_elem(elem: html.HtmlElement) -> Rectangle:

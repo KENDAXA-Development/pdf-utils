@@ -10,8 +10,6 @@ import numpy as np
 import pdf2image
 import pytesseract
 from PIL import Image
-from reportlab.lib.utils import ImageReader
-from reportlab.pdfgen.canvas import Canvas
 
 from pdf_tools.rectangle import Rectangle
 
@@ -104,73 +102,37 @@ def ocr_one_image(im: Image.Image,
             })
     return result
 
-
-def image_to_one_page_ocred_pdf(im: Image.Image,
-                                pdf_path: str,
-                                ocr_text: List[Dict],
-                                output_pdf_width: int,
-                                font_name: str = "Helvetica") -> None:
-    """Convert the image into a pdf with added textual layer and store it to disc.
-
-    Run tesseract OCR and add invisible textual content so that the pdf is searchable / clickable.
-    :param im: input image
-    :param pdf_path: path to output pdf
-    :param ocr_text: information about words and their bounding boxes
-    :param output_pdf_width: with of output pdf page
-    :param font_name
-    """
-    print("output pdf width", output_pdf_width)
-    print("im.size[0]", im.size[0])
-    rescale = output_pdf_width / im.size[0]
-    if rescale > 1:
-        logging.warning("making the pdf page larger than the image (consider doing ocr on larger im)")
-    output_pdf_height = int(im.size[1] * rescale)
-    new_pdf = Canvas(pdf_path, pagesize=(output_pdf_width, output_pdf_height))
-
-    im_resized = im.resize((output_pdf_width, output_pdf_height))
-    new_pdf.drawImage(
-        ImageReader(im_resized),
-        0, 0, width=output_pdf_width, height=output_pdf_height)
-
-    for word_and_position in ocr_text:
-        word = word_and_position["word"]
-        bb = word_and_position["bb"].rescale(multiply_width_by=rescale, multiply_height_by=rescale)
-
-        text = new_pdf.beginText()
-        text.setFont(font_name, bb.height)
-        text.setTextRenderMode(3)  # invisible
-        text.setTextOrigin(bb.x_min, output_pdf_height - bb.y_max)  # bottom-left corner
-        text.setHorizScale(100 * bb.width / new_pdf.stringWidth(word, "Helvetica", bb.height))
-        text.textLine(word)
-        new_pdf.drawText(text)
-
-    new_pdf.save()
+#
+# def convert_image_list_to_searchable_pdf(images: List[Image.Image],
+#                                          pdf_path: str,
+#                                          output_pdf_width: int,
+#                                          tesseract_lang: str = "eng",
+#                                          tesseract_config: str = "--psm 12 --oem 3"
+#                                          ):
+#     """Create a pdf from images with digital content comming from pytesseract."""
+#     td, tmp_paths = mkdtemp(), []
+#     for page_idx, im in enumerate(images):
+#         current_tmp_path = str(Path(td) / f"{page_idx}.pdf")
+#         tmp_paths.append(current_tmp_path)
+#         logging.info(f"Tesseracting page {page_idx}...")
+#         image_to_one_page_ocred_pdf(
+#             im,
+#             pdf_path=current_tmp_path,
+#             ocr_text=ocr_one_image(im, tesseract_lang, tesseract_config),
+#             output_pdf_width=output_pdf_width)
+#
+#     # combine single-page pdfs into one
+#     subprocess.run([
+#         "pdfunite", *tmp_paths, pdf_path
+#     ])
+#     # cleanup
+#     shutil.rmtree(td)
 
 
-def convert_image_list_to_searchable_pdf(images: List[Image.Image],
-                                         pdf_path: str,
-                                         output_pdf_width: int,
-                                         tesseract_lang: str = "eng",
-                                         tesseract_config: str = "--psm 12 --oem 3"
-                                         ):
-    """Create a pdf from images with digital content comming from pytesseract."""
-    td, tmp_paths = mkdtemp(), []
-    for page_idx, im in enumerate(images):
-        current_tmp_path = str(Path(td) / f"{page_idx}.pdf")
-        tmp_paths.append(current_tmp_path)
-        logging.info(f"Tesseracting page {page_idx}...")
-        image_to_one_page_ocred_pdf(
-            im,
-            pdf_path=current_tmp_path,
-            ocr_text=ocr_one_image(im, tesseract_lang, tesseract_config),
-            output_pdf_width=output_pdf_width)
-
-    # combine single-page pdfs into one
+def combine_pdfs_into_one(output_pdf_path, *pdf_paths):
+    """Merge pdfs."""
     subprocess.run([
-        "pdfunite", *tmp_paths, pdf_path
-    ])
-    # cleanup
-    shutil.rmtree(td)
+            "pdfunite", *pdf_paths, output_pdf_path])
 
 
 def get_indices_of_words(words: List[str], char_span: Tuple[int, int]) -> Dict:
