@@ -19,7 +19,7 @@ class Scanner:
     def ocr_one_image(cls,
                       im: Image.Image,
                       lang: str = "eng",
-                      config: str = "--psm 12 --oem 3") -> List[Dict]:
+                      config: str = "--psm 1 --oem 3") -> List[Dict]:
         """Compute a dictionary with detected words and bounding boxes.
 
         :param im: input image
@@ -56,8 +56,8 @@ class Scanner:
         Run tesseract OCR and add invisible textual content so that the pdf is searchable / clickable.
         :param im: input image
         :param pdf_path: path to output pdf
-        :param pdf_width: widht of the pdf to be created
-        :param pdf_height: height of the pdf to be created
+        :param pdf_width: widht of the pdf to be created (points)
+        :param pdf_height: height of the pdf to be created (points)
         :param ocr_text: information about words and their bounding boxes in relative coordinates
         (such as the output of `ocr_one_image`)
         :param font_name
