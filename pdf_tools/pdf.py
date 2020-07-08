@@ -184,7 +184,10 @@ class Pdf:
         """
         td, pdf_paths = mkdtemp(), []
         for page_idx in range(self.number_of_pages):
-            img = self.page_image(dpi=images_dpi, recompute=True)  # this make take some time, but less than ocr
+            img = self.page_image(
+                page_idx=page_idx,
+                dpi=images_dpi,
+                recompute=True)  # this make take some time, but less than ocr
             current_pdf_name = str(Path(td) / f"{page_idx}.pdf")
             pdf_paths.append(current_pdf_name)
             pdf_width, pdf_height = self.get_width_height(page_idx)

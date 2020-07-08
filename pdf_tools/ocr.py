@@ -1,7 +1,4 @@
 """Tesseracting images and converting them to pdf."""
-import logging
-import subprocess
-from tempfile import mkdtemp
 from typing import Dict, List
 
 from PIL import Image
