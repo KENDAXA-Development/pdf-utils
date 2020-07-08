@@ -8,7 +8,7 @@ from PIL import Image
 from PyPDF2 import PdfFileReader
 from lxml import html
 
-from pdf_tools.converter import image_from_pdf_page
+from pdf_tools.converter import image_from_pdf_page, convert_image_list_to_searchable_pdf
 from pdf_tools.rectangle import Rectangle
 
 
@@ -85,6 +85,7 @@ class Pdf:
         """Get the image of a pdf page.
 
         If the page has internal nonzero "Rotation", we ignore it; we just call pdftoppm and don't rotate anything.
+        Note that a second call, even with different dpi, will return the cached image, unless 'recompute' flag is on.
 
         :param page_idx: page number, starting from zero
         :param dpi: dpi
@@ -156,6 +157,29 @@ class Pdf:
         return {
             page_nr: list(map(lambda w: w.text if w.text is not None else "", words))
             for page_nr, words in self.get_pages().items()}
+
+    def recreate_digital_content(self, output_pdf: str,
+                                 output_pdf_width: Optional[int] = None,
+                                 tesseract_lang: str = "eng",
+                                 tesseract_conf: str = "") -> None:
+        """Get images, do OCR and create a new pdf with new text layer.
+
+        Can be useful for documents which are only images. If there is a textual layer at the beginning, it will be lost.
+
+        :param output_pdf: path to the output pdf file
+        :param output_pdf_width: with of the output pdf file. If None, with of the first page of initial pdf will be used.
+        :param tesseract_lang: language to expect
+        :param tesseract_conf: tesseract configuration
+        """
+        if output_pdf_width is None:
+            output_pdf_width = self.get_width_height(0)[0]
+        convert_image_list_to_searchable_pdf(
+            self.images,
+            output_pdf,
+            output_pdf_width,
+            tesseract_lang,
+            tesseract_conf
+        )
 
     @staticmethod
     def get_bounding_box_of_elem(elem: html.HtmlElement) -> Rectangle:

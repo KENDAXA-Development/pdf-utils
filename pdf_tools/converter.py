@@ -119,6 +119,8 @@ def image_to_one_page_ocred_pdf(im: Image.Image,
     :param output_pdf_width: with of output pdf page
     :param font_name
     """
+    print("output pdf width", output_pdf_width)
+    print("im.size[0]", im.size[0])
     rescale = output_pdf_width / im.size[0]
     if rescale > 1:
         logging.warning("making the pdf page larger than the image (consider doing ocr on larger im)")
