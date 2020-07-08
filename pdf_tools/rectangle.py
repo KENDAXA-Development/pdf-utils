@@ -1,3 +1,9 @@
+"""Rectangle class implements bounding boxes representation.
+
+Main methods support various bounding-boxes operations such as
+* conversion between various formats, or
+* computing intersections, unions and subbox-relations.
+"""
 from __future__ import annotations
 
 import logging

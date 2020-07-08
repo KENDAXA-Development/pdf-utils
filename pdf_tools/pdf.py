@@ -1,3 +1,8 @@
+"""Tools to process one pdf file.
+
+Main methods support extracting textual content, extracting images, localizing positions of words,
+extracting annotations, and converting an image-like pdf into "searchable" pdf via doing ocr.
+"""
 import logging
 import subprocess
 from pathlib import Path
