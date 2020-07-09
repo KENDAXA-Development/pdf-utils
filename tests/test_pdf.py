@@ -1,12 +1,15 @@
+import os
 import re
 import unittest
 from pathlib import Path
+from tempfile import mkstemp
 
 import numpy as np
 from PIL import Image
 from lxml import html
 from tests.image_comparison import naive_image_similarity
 
+from pdf_tools.ocr import Scanner
 from pdf_tools.pdf import Pdf
 from pdf_tools.rectangle import Rectangle
 
@@ -136,3 +139,66 @@ class TestPdf(unittest.TestCase):
         self.assertTrue(
             self.pdf_rotated.get_bounding_box_of_elem(pages_rotated[0][0]) in (
                 Rectangle(x_min=712, y_min=70, x_max=750, y_max=162)))
+
+    def test_pdf_recreation(self):
+        """Test the method `recreate_digital_content`.
+
+        We convert the example pdf to a new pdf created from images and ocr.
+        Then we test that
+            * image-content of first page is similar to image of the reconstructed pdf, and
+            * textual content of first page is the same as ocr-result from first page-image.
+        (Ocr itself is tested in the test_ocr module.)
+        """
+        tmp_pdf_file = mkstemp()[1]
+        self.pdf.recreate_digital_content(
+            tmp_pdf_file, tesseract_lang='eng', tesseract_conf="")
+        recreated = Pdf(tmp_pdf_file)
+
+        # pdf should have two pages
+        self.assertEqual(recreated.number_of_pages, 2)
+
+        # size of first page should be unchanged
+        pdf_widh, pdf_height = self.pdf.get_width_height(0)
+        self.assertEqual(recreated.get_width_height(0), (pdf_widh, pdf_height))
+
+        im_width, im_height = self.pdf.page_image(0, dpi=150).size
+        im_recreated = recreated.page_image(0, dpi=150)
+
+        # first page image original and reconstructed (widht equal dpi) should have approximately the same size
+        self.assertLess(abs(np.log(im_width) - np.log(im_recreated.size[0])), 0.05)
+        self.assertLess(abs(np.log(im_height) - np.log(im_recreated.size[1])), 0.05)
+
+        # first page should be similar to the first reconstructed page (after resizing)
+        im_recreated = im_recreated.resize((im_width, im_height))
+        self.assertGreater(
+            naive_image_similarity(
+                np.array(self.pdf.page_image(0)),
+                np.array(im_recreated)),
+            0.98
+        )
+
+        # check digital content
+        # we will compare dictionaries {word: bounding_box} in reconstructed pdf and in ocr scan of the original one
+        # these two dictionaries should have equal keys, and similar values for all keys which represent unique words
+        words_and_bounding_boxes = recreated.get_pages()[0]
+        words_and_bounding_boxes = {
+            item.text: Pdf.get_bounding_box_of_elem(item).relative_to_size(width=pdf_widh, height=pdf_height)
+            for item in words_and_bounding_boxes}
+
+        scanned_words_and_bounding_boxes = Scanner.ocr_one_image(
+            self.pdf.page_image(0), lang="eng", config="")
+        scanned_words_and_bounding_boxes = {
+            item["word"]: item["bb"] for item in scanned_words_and_bounding_boxes}
+
+        # both dictionaries should have the same keys
+        self.assertEqual(set(scanned_words_and_bounding_boxes), set(words_and_bounding_boxes))
+
+        # bounding boxes of the word "left" should be approximatelg equal (iou at least 0.4)
+        self.assertGreater(
+            scanned_words_and_bounding_boxes["left"].get_iou(
+                words_and_bounding_boxes["left"]),
+            0.4
+        )
+
+        # cleanup
+        os.remove(tmp_pdf_file)

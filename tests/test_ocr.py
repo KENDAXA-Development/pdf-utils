@@ -28,7 +28,7 @@ class TestScanner(unittest.TestCase):
         # interlap of detected and digital words should be large
         inter = len(found_words_from_ocr & digital_words_first_page)
         iou = inter / (len(found_words_from_ocr) + len(digital_words_first_page) - inter)
-        self.assertTrue(iou > 0.95)
+        self.assertTrue(iou > 0.9)
 
         # further, let's find the word 'irure' in both digital content and scanned content
         irure_el = self.example_pdf.get_text_with_bb().xpath('.//word[text()="irure"]')[0]
@@ -38,9 +38,9 @@ class TestScanner(unittest.TestCase):
         )
         irure_ocred_bb = list(filter(lambda i: i["word"] == "irure", self.ocr_data))[0]["bb"]
 
-        # bounding box of 'irure' should be similar in both cases
-        # however, we need to be tolerant here, as bounding boxes of scanned text
-        # are typically smaller than the digital ones
+        # Bounding box of 'irure' should be similar in both cases.
+        # However, we need to be tolerant here, as bounding boxes of scanned text are typically smaller
+        # than the digital ones. So let's require intersection over union at least 0.4.
         self.assertGreater(irure_ocred_bb.get_iou(irure_digital_bb), 0.4)
 
     def test_ocred_pdf(self):
@@ -53,9 +53,10 @@ class TestScanner(unittest.TestCase):
                                             ocr_text=self.ocr_data
                                             )
         scanned_pdf = Pdf(pdf_path)
+        # get digital content of the scanned pdf
         scanned_text = scanned_pdf.get_layout_text()
         self.assertTrue(
             re.search(r"of\s+all\s+factories\s+10\s+bil\.\s+Euro\s+4\%", scanned_text)
         )
-
+        # cleanup
         os.remove(pdf_path)
