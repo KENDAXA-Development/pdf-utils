@@ -1,6 +1,6 @@
-import unittest
 import os
 import re
+import unittest
 from pathlib import Path
 from tempfile import mkstemp
 
@@ -49,7 +49,7 @@ class TestScanner(unittest.TestCase):
         Scanner.image_to_one_page_ocred_pdf(self.first_page_large,
                                             pdf_path,
                                             pdf_width=self.example_pdf.get_width_height()[0],
-                                            pdf_height = self.example_pdf.get_width_height()[1],
+                                            pdf_height=self.example_pdf.get_width_height()[1],
                                             ocr_text=self.ocr_data
                                             )
         scanned_pdf = Pdf(pdf_path)
@@ -59,4 +59,3 @@ class TestScanner(unittest.TestCase):
         )
 
         os.remove(pdf_path)
-
