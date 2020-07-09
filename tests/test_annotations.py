@@ -88,7 +88,7 @@ class TestAnnotation(unittest.TestCase):
         self.assertEqual(ann.as_dict, expected_annotation_as_dict)
 
     @staticmethod
-    def annotations_are_similar(first: Annotation, second: Annotation, thres: float = 0.99) -> bool:
+    def annotations_are_similar(first: Annotation, second: Annotation, similarity_threshold: float = 0.99) -> bool:
         """Check the two annotations are the same, possibly up to minor differences in bounding boxes."""
         return (
             first.page == second.page) and (
@@ -96,7 +96,7 @@ class TestAnnotation(unittest.TestCase):
             first.text_content == second.text_content) and (
             first.label == second.label) and (
             first.who_annotated == second.who_annotated) and (
-            first.box.get_iou(second.box) > thres)
+                       first.box.get_iou(second.box) > similarity_threshold)
 
     def test_annotation_extraction(self):
         """Extract annotation from file and check that they correspond to expected annotations."""
