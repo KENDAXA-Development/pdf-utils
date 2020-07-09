@@ -7,7 +7,7 @@ from tempfile import mkstemp
 import numpy as np
 from PIL import Image
 from lxml import html
-from tests.image_comparison import naive_image_similarity
+from tests.object_similarity import naive_image_similarity
 
 from pdf_tools.ocr import Scanner
 from pdf_tools.pdf_handler import Pdf

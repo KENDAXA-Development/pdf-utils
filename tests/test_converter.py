@@ -6,7 +6,7 @@ from tempfile import mkstemp
 
 import numpy as np
 from PIL import Image
-from tests.image_comparison import naive_image_similarity
+from tests.object_similarity import naive_image_similarity
 
 from pdf_tools import converter
 from pdf_tools.rectangle import Rectangle

@@ -4,6 +4,8 @@ import unittest
 from pathlib import Path
 from tempfile import mkstemp
 
+from tests.object_similarity import annotations_are_similar
+
 from pdf_tools.annotation import Annotation, AnnotationExtractor
 from pdf_tools.pdf_handler import Pdf
 from pdf_tools.rectangle import Rectangle
@@ -86,24 +88,13 @@ class TestAnnotation(unittest.TestCase):
 
         self.assertEqual(ann.as_dict, expected_annotation_as_dict)
 
-    @staticmethod
-    def annotations_are_similar(first: Annotation, second: Annotation, similarity_threshold: float = 0.99) -> bool:
-        """Check the two annotations are the same, possibly up to minor differences in bounding boxes."""
-        return (
-            first.page == second.page) and (
-            first.type == second.type) and (
-            first.text_content == second.text_content) and (
-            first.label == second.label) and (
-            first.who_annotated == second.who_annotated) and (
-            first.box.get_iou(second.box) > similarity_threshold)
-
     def test_annotation_extraction(self):
         """Extract annotation from file and check that they correspond to expected annotations."""
         annotations = self.extractor.get_annot_from_pdf(self.annotated_pdf)
         for page_idx in annotations:
             for annot in annotations[page_idx]:
                 self.assertTrue(
-                    any(self.annotations_are_similar(annot, other)
+                    any(annotations_are_similar(annot, other)
                         for other in self.expected_annotations[page_idx]))
 
     def test_dump_annotations_to_file(self):
@@ -118,7 +109,7 @@ class TestAnnotation(unittest.TestCase):
             for i, annot in enumerate(annots_from_file[page_idx]):
                 # check that i'th annotation on page page_idx is the same in annotations and in annots_from_file
                 self.assertTrue(
-                    self.annotations_are_similar(
+                    annotations_are_similar(
                         Annotation(
                             page=annot["page"],
                             type=annot["type"],

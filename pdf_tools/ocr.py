@@ -12,9 +12,6 @@ from pdf_tools.rectangle import Rectangle
 class Scanner:
     """Ocr image, create searchable pdf from images."""
 
-    def __init__(self):
-        pass
-
     @classmethod
     def ocr_one_image(cls,
                       im: Image.Image,
