@@ -88,8 +88,10 @@ class AnnotationExtractor:
             json.dump(js, f)
 
     @staticmethod
-    def _create_rectangle(box_as_list: List, page_height: Union[int, float], from_above: bool = True) -> Rectangle:
-        """Normalize the box raw pdf output.
+    def _create_annotations_bounding_box(box_as_list: List,
+                                         page_height: Union[int, float],
+                                         from_above: bool = True) -> Rectangle:
+        """Get the rectangle representing the bounding box of an annotation.
 
         :param box_as_list: list of 4 numbers, assumed to be (x_min, y_min, x_max, y_max).
             Vertical coordinates are increasing from below!
@@ -126,7 +128,7 @@ class AnnotationExtractor:
             current = ann.getObject()
             if "/Subj" in current:
                 annot_type = current["/Subj"].lower()
-                current_rec = AnnotationExtractor._create_rectangle(current.get("/Rect"), page_height)
+                current_rec = AnnotationExtractor._create_annotations_bounding_box(current.get("/Rect"), page_height)
                 text_content = current.get("/Contents")
                 who_annotated = current.get("/T")
                 if isinstance(text_content, ByteStringObject):
