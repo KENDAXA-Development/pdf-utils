@@ -5,7 +5,7 @@ from pathlib import Path
 from tempfile import mkstemp
 
 from pdf_tools.ocr import Scanner
-from pdf_tools.pdf import Pdf
+from pdf_tools.pdf_handler import Pdf
 
 
 class TestScanner(unittest.TestCase):

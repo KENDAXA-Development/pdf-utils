@@ -9,7 +9,7 @@ from typing import Any, List, Dict, Optional, Union
 from PyPDF2.generic import ByteStringObject, IndirectObject
 from PyPDF2.pdf import PageObject
 
-from pdf_tools.pdf import Pdf
+from pdf_tools.pdf_handler import Pdf, CannotReadPdf
 from pdf_tools.rectangle import Rectangle
 
 
@@ -25,8 +25,16 @@ class Annotation:
             page: int,
             type: str,
             box: Rectangle,
-            label: Optional[int] = None,
-            text_content: Optional[str] = None) -> None:
+            text_content: Optional[str] = None,
+            label: Optional[int] = None) -> None:
+        """Create annotation with given data.
+
+        :param page: indicating on which page the annotation is
+        :param type: annotation type, should be one of the ADMISSIBLE_ANNOTATION_TYPES
+        :param box: bounding box of the annotation (assuming pdf-coordinates in points)
+        :param label: optional, not comming from pdf, but can be used for ML
+        :param text_content: text_content
+        """
         assert type in ADMISSIBLE_ANNOTATION_TYPES
         self.page = page
         self.type = type if type != "ovál" else "oval"
@@ -55,6 +63,27 @@ class AnnotationExtractor:
     """
 
     @staticmethod
+    def get_annot_from_pdf(pdf: Pdf) -> Dict[int, List[Annotation]]:
+        """Fetch annotations from annotated pdf and outputs as a dictionary.
+
+        :param pdf: Pdf object (object of kx_signatures.pdf.Pdf class)
+        return: dictionary {page_num : [list_of_annotations_on_that_page]}
+        """
+        outputs = []
+        for idx in range(pdf.number_of_pages):
+            outputs += AnnotationExtractor._parse_annot_pdf_page(pdf.pdf_reader.getPage(idx), idx)
+        return AnnotationExtractor._group_by_pages(outputs)
+
+    @staticmethod
+    def dump_annotations_to_file(annotations: Dict[int, List[Annotation]], output_path: str) -> None:
+        """Json serialization of a list of Annotations."""
+        js = {}
+        for page in annotations:
+            js[page] = [annot.as_dict for annot in annotations[page]]
+        with open(output_path, "w") as f:
+            json.dump(js, f)
+
+    @staticmethod
     def _create_rectangle(box_as_list: List, page_height: Union[int, float], from_above: bool = True) -> Rectangle:
         """Normalize the box raw pdf output.
 
@@ -74,7 +103,11 @@ class AnnotationExtractor:
     def _parse_annot_pdf_page(page: PageObject, page_idx: int) -> List[Annotation]:
         """Fetch annotations on this pdf page and return them as a list."""
         outputs = []
-        page_height = page.mediaBox[3]  # assuming the mediabox has form [0,0,width,height]
+        if not page.cropBox[0] == page.cropBox[1] == 0:
+            raise CannotReadPdf(
+                f"cannot find positions of annotations, cropBox of page does not start with zeros (={page.cropBox})")
+
+        page_height = page.cropBox[3]  # assuming the mediabox has form [0,0,width,height]
         annots = page.get('/Annots', [])
         if not isinstance(annots, list):
             # something is strange
@@ -111,24 +144,3 @@ class AnnotationExtractor:
             page_num = record.page
             result[page_num].append(record)
         return dict(result)
-
-    @staticmethod
-    def get_annot_from_pdf(pdf: Pdf) -> Dict[int, List[Annotation]]:
-        """Fetch annotations from annotated pdf and outputs as a dictionary.
-
-        :param pdf: Pdf object (object of kx_signatures.pdf.Pdf class)
-        return: dictionary {page_num : [list_of_annotations_on_that_page]}
-        """
-        outputs = []
-        for idx in range(pdf.number_of_pages):
-            outputs += AnnotationExtractor._parse_annot_pdf_page(pdf.pdf_reader.getPage(idx), idx)
-        return AnnotationExtractor._group_by_pages(outputs)
-
-    @staticmethod
-    def dump_annotations_to_file(annotations: Dict[int, List[Annotation]], output_path: str):
-        """Json serialization of a list of Annotations."""
-        js = {}
-        for page in annotations:
-            js[page] = [annot.as_dict for annot in annotations[page]]
-        with open(output_path, "w") as f:
-            json.dump(js, f)

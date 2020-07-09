@@ -162,6 +162,14 @@ class Rectangle:
         return rest_normalized if first_intersects_some else [first] + rest_normalized
 
     def __contains__(self, other: Rectangle) -> bool:
+        """Check if the other box is a subbox of the current box.
+
+        It is true if the other box is "fully inside" the current box.
+        We are a bit mixing the "is element" and "subset" relations, but meaning should be clear from the context.
+        For instance,
+            `Rectangle(1, 1, 2, 2) in Rectangle(0, 0, 5, 5)` is True, while
+            `Rectangle(1, 1, 2, 2) in Rectangle(1, 1.1, 2, 3)` is False.
+        """
         return self.contains_other(other)
 
     def __eq__(self, other: Rectangle) -> bool:

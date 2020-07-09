@@ -10,7 +10,7 @@ from lxml import html
 from tests.image_comparison import naive_image_similarity
 
 from pdf_tools.ocr import Scanner
-from pdf_tools.pdf import Pdf
+from pdf_tools.pdf_handler import Pdf
 from pdf_tools.rectangle import Rectangle
 
 
@@ -193,7 +193,7 @@ class TestPdf(unittest.TestCase):
         # both dictionaries should have the same keys
         self.assertEqual(set(scanned_words_and_bounding_boxes), set(words_and_bounding_boxes))
 
-        # bounding boxes of the word "left" should be approximatelg equal (iou at least 0.4)
+        # bounding boxes of the word "left" should be approximately equal (iou at least 0.4)
         self.assertGreater(
             scanned_words_and_bounding_boxes["left"].get_iou(
                 words_and_bounding_boxes["left"]),
