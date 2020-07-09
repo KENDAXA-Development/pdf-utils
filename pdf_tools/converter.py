@@ -4,7 +4,6 @@ from typing import Union, List, Tuple, Dict
 
 import numpy as np
 import pdf2image
-import pytesseract
 from PIL import Image
 
 from pdf_tools.rectangle import Rectangle
@@ -73,30 +72,6 @@ def pdf_box_to_image_box(pdf_box: Rectangle,
 def save_images_to_pdf(images: List[Image.Image], output_pdf: str) -> None:
     """Save a list of images as a vanilla image-pdf (no text content), each image on one page."""
     images[0].save(output_pdf, "PDF", save_all=True, append_images=images[1:])
-
-
-def ocr_one_image(im: Image.Image,
-                  lang: str = "eng",
-                  config: str = "--psm 12 --oem 3") -> List[Dict]:
-    """Compute a dictionary with detected words and bounding boxes.
-
-    :param im: input image
-    :param lang: language code
-    :param config: tesseract configuration
-    :return: list of dictionaries of type {"word": word, "bb": bounding box of the word}
-    """
-    d = pytesseract.image_to_data(
-        im, output_type=pytesseract.Output.DICT, lang=lang, config=config)
-    result = []
-    for i in range(len(d["level"])):
-        word = d["text"][i]
-        if word.strip():
-            left, top, width, height = d["left"][i], d["top"][i], d["width"][i], d["height"][i]
-            result.append({
-                "word": word,
-                "bb": Rectangle(left, top, left + width, top + height)
-            })
-    return result
 
 
 def combine_pdfs_into_one(output_pdf_path, *pdf_paths):
