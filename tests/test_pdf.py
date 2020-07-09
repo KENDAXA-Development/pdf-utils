@@ -62,8 +62,8 @@ class TestPdf(unittest.TestCase):
             0.98
         )
 
-        images = self.pdf.images
-        images_rotated = self.pdf_rotated.images
+        images = list(self.pdf.images)
+        images_rotated = list(self.pdf_rotated.images)
 
         # the 'images' method should return the precomputed images from a buffer, so here we require exact match
         self.assertEqual(im_1, images[0])
@@ -71,10 +71,10 @@ class TestPdf(unittest.TestCase):
 
     def test_text_extraction_from_pdf(self):
         """This is essentially testing pdftotext (probably coming from Poppler, of Xpdf)."""
-        simple_text = self.pdf.get_simple_text()
-        layout_text = self.pdf.get_layout_text()
+        simple_text = self.pdf.simple_text
+        layout_text = self.pdf.layout_text
         # xml with bounding boxes of words
-        root = self.pdf.get_text_with_bb()
+        root = self.pdf.text_with_bb
 
         # list of strings (one per page)
         simple_pages = [page for page in simple_text.split("\f") if page]
@@ -112,7 +112,7 @@ class TestPdf(unittest.TestCase):
             ))
 
     def test_text_extraction_from_rotated_pdf(self):
-        root = self.pdf.get_text_with_bb()
+        root = self.pdf.text_with_bb
 
         # here we at least check the type
         self.assertTrue(isinstance(root, html.HtmlElement))

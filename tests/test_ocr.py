@@ -31,7 +31,7 @@ class TestScanner(unittest.TestCase):
         self.assertTrue(iou > 0.9)
 
         # further, let's find the word 'irure' in both digital content and scanned content
-        irure_el = self.example_pdf.get_text_with_bb().xpath('.//word[text()="irure"]')[0]
+        irure_el = self.example_pdf.text_with_bb.xpath('.//word[text()="irure"]')[0]
         irure_digital_bb = Pdf.get_bounding_box_of_elem(irure_el).relative_to_size(
             width=self.example_pdf.get_width_height(0)[0],
             height=self.example_pdf.get_width_height(0)[1]
@@ -54,7 +54,7 @@ class TestScanner(unittest.TestCase):
                                             )
         scanned_pdf = Pdf(pdf_path)
         # get digital content of the scanned pdf
-        scanned_text = scanned_pdf.get_layout_text()
+        scanned_text = scanned_pdf.layout_text
         self.assertTrue(
             re.search(r"of\s+all\s+factories\s+10\s+bil\.\s+Euro\s+4\%", scanned_text)
         )

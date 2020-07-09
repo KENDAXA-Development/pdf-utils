@@ -8,7 +8,7 @@ import shutil
 import subprocess
 from pathlib import Path
 from tempfile import mkdtemp
-from typing import Tuple, List, Union, Dict, Optional
+from typing import Iterable, Tuple, List, Union, Dict, Optional
 
 import numpy as np
 from PIL import Image
@@ -117,9 +117,9 @@ class Pdf:
         return img
 
     @property
-    def images(self) -> List[Image.Image]:
+    def images(self) -> Iterable[Image.Image]:
         """Return all images as a list."""
-        return [self.page_image(page_idx) for page_idx in range(self.number_of_pages)]
+        return (self.page_image(page_idx) for page_idx in range(self.number_of_pages))
 
     def _extract_text_from_pdf(self, pdftotext_layout_argument: Optional[str] = None) -> str:
         """Get textual pdf content. Wrapper of Poppler's pdftotext.
@@ -133,19 +133,22 @@ class Pdf:
         return subprocess.check_output(
             pdftotext_args + [str(self.pdf_path), "-"], universal_newlines=True)
 
-    def get_simple_text(self) -> str:
+    @property
+    def simple_text(self) -> str:
         """Use `pdftotext` to extract textual content."""
         if self._simple_text is None:
             self._simple_text = self._extract_text_from_pdf()
         return self._simple_text
 
-    def get_layout_text(self) -> str:
+    @property
+    def layout_text(self) -> str:
         """Use `pdftotext -layout` to extract textual content."""
         if self._layout_text is None:
             self._layout_text = self._extract_text_from_pdf("-layout")
         return self._layout_text
 
-    def get_text_with_bb(self) -> html.HtmlElement:
+    @property
+    def text_with_bb(self) -> html.HtmlElement:
         """Get textual content including bounding boxes of each word, represented as the root of the xml tree."""
         if self._root is None:
             bbox_text = self._extract_text_from_pdf("-bbox-layout")
@@ -155,7 +158,7 @@ class Pdf:
     def get_pages(self) -> Dict[int, List[html.HtmlElement]]:
         """Return a dictionary {page_num: list_of_words (as xml elements)}."""
         res = {}
-        root = self.get_text_with_bb()
+        root = self.text_with_bb
         for page_num, page in enumerate(root.findall(".//page")):
             res[page_num] = page.findall(".//word")
         return res
