@@ -26,20 +26,23 @@ class Annotation:
             type: str,
             box: Rectangle,
             text_content: Optional[str] = None,
+            who_annotated: Optional[str] = None,
             label: Optional[int] = None) -> None:
         """Create annotation with given data.
 
         :param page: indicating on which page the annotation is
         :param type: annotation type, should be one of the ADMISSIBLE_ANNOTATION_TYPES
         :param box: bounding box of the annotation (assuming pdf-coordinates in points)
-        :param label: optional, not comming from pdf, but can be used for ML
         :param text_content: text_content
+        :param who_annotated: persons name or id
+        :param label: optional, not comming from pdf, but can be used for ML
         """
         assert type in ADMISSIBLE_ANNOTATION_TYPES
         self.page = page
         self.type = type if type != "ovál" else "oval"
         self.box = box
         self.text_content = text_content
+        self.who_annotated = who_annotated
         self.label = label
 
     @property
@@ -49,6 +52,7 @@ class Annotation:
             "type": self.type,
             "box": self.box.as_dict,
             "label": self.label,
+            "who_annotated": self.who_annotated,
             "text_content": self.text_content,
         }
 
@@ -124,6 +128,7 @@ class AnnotationExtractor:
                 annot_type = current["/Subj"].lower()
                 current_rec = AnnotationExtractor._create_rectangle(current.get("/Rect"), page_height)
                 text_content = current.get("/Contents")
+                who_annotated = current.get("/T")
                 if isinstance(text_content, ByteStringObject):
                     text_content = text_content.decode('utf-8')
                 if annot_type in ADMISSIBLE_ANNOTATION_TYPES:
@@ -131,7 +136,8 @@ class AnnotationExtractor:
                         page=page_idx,
                         type=annot_type,
                         box=current_rec,
-                        text_content=text_content))
+                        text_content=text_content,
+                        who_annotated=who_annotated))
                 else:
                     logging.warning(f"foreign annotation found (type {annot_type}, src {input})")
         return outputs
