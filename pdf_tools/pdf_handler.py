@@ -15,7 +15,7 @@ from PIL import Image
 from PyPDF2 import PdfFileReader
 from lxml import html
 
-from pdf_tools.converter import image_from_pdf_page, combine_pdfs_into_one
+from pdf_tools.converter import image_from_pdf_page, merge_pdfs
 from pdf_tools.ocr import Scanner
 from pdf_tools.rectangle import Rectangle
 
@@ -204,7 +204,7 @@ class Pdf:
             Scanner.image_to_one_page_ocred_pdf(
                 img, current_pdf_name, pdf_width=pdf_width, pdf_height=pdf_height, ocr_text=ocr_text)
 
-        combine_pdfs_into_one(output_pdf, *pdf_paths)
+        merge_pdfs(output_pdf, *pdf_paths)
         # cleanup
         shutil.rmtree(temp_dir)
 

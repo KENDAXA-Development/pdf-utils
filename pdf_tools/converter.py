@@ -74,7 +74,7 @@ def save_images_to_pdf(images: List[Image.Image], output_pdf: str) -> None:
     images[0].save(output_pdf, "PDF", save_all=True, append_images=images[1:])
 
 
-def combine_pdfs_into_one(output_pdf_path, *pdf_paths):
+def merge_pdfs(output_pdf_path, *pdf_paths):
     """Merge pdfs."""
     subprocess.run(["pdfunite", *pdf_paths, output_pdf_path])
 

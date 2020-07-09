@@ -29,7 +29,7 @@ class TestAnnotation(unittest.TestCase):
                 type="rectangle",
                 box=Rectangle(x_min=83.46, y_min=504.12, x_max=221.12, y_max=518),
                 text_content="risk",
-                who_annotated = "peter"),
+                who_annotated="peter"),
             Annotation(
                 page=0,
                 type="rectangle",
@@ -61,7 +61,6 @@ class TestAnnotation(unittest.TestCase):
         self.assertRaises(
             AssertionError,
             lambda: Annotation(page=0, type="invisible", box=Rectangle(0, 0, 0, 0)))
-
 
     def test_annotation_creation(self):
         """Test the creation of one Annotation object."""
@@ -96,7 +95,7 @@ class TestAnnotation(unittest.TestCase):
             first.text_content == second.text_content) and (
             first.label == second.label) and (
             first.who_annotated == second.who_annotated) and (
-                       first.box.get_iou(second.box) > similarity_threshold)
+            first.box.get_iou(second.box) > similarity_threshold)
 
     def test_annotation_extraction(self):
         """Extract annotation from file and check that they correspond to expected annotations."""
