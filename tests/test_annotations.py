@@ -1,5 +1,8 @@
+import json
+import os
 import unittest
 from pathlib import Path
+from tempfile import mkstemp
 
 from pdf_tools.annotation import Annotation, AnnotationExtractor
 from pdf_tools.pdf import Pdf
@@ -82,3 +85,26 @@ class TestAnnotation(unittest.TestCase):
                 self.assertTrue(
                     any(self.annotations_are_similar(annot, other)
                         for other in self.expected_annotations[page_idx]))
+
+    def test_dump_annotations_to_file(self):
+        """Dump annotations to file, load them from file, and compare that all is consistent."""
+        annotations = self.extractor.get_annot_from_pdf(self.annotated_pdf)
+        temp_json_file = mkstemp()[1]
+        self.extractor.dump_annotations_to_file(annotations, temp_json_file)
+        with open(temp_json_file) as f:
+            annots_from_file = json.load(f)
+
+        for page_idx in annots_from_file:
+            for i, annot in enumerate(annots_from_file[page_idx]):
+                # check that i'th annotation on page page_idx is the same in annotations and in annots_from_file
+                self.annotations_are_similar(
+                    Annotation(
+                        page=annot["page"],
+                        type=annot["type"],
+                        box=Rectangle.from_dict(annot["box"]),
+                        label=annot["label"],
+                        text_content=annot["text_content"]),
+                    annotations[int(page_idx)][i]
+                )
+
+        os.remove(temp_json_file)
