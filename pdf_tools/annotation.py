@@ -37,7 +37,7 @@ class Annotation:
         :param who_annotated: persons name or id
         :param label: optional, not comming from pdf, but can be used for ML
         """
-        assert type in ADMISSIBLE_ANNOTATION_TYPES
+        assert type in ADMISSIBLE_ANNOTATION_TYPES, f"unsupported annotation type: '{type}'"
         self.page = page
         self.type = type if type != "ovál" else "oval"
         self.box = box

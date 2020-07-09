@@ -56,6 +56,13 @@ class TestAnnotation(unittest.TestCase):
                 text_content="add Honza",
                 who_annotated="peter")]}
 
+    def test_assertion_in_annotation_type(self):
+        """If type is not in ADMISSIBLE_ANNOTATIONS, an error should be raised."""
+        self.assertRaises(
+            AssertionError,
+            lambda: Annotation(page=0, type="invisible", box=Rectangle(0, 0, 0, 0)))
+
+
     def test_annotation_creation(self):
         """Test the creation of one Annotation object."""
         ann = Annotation(
