@@ -1,11 +1,10 @@
-"""Tools to deal with pdf annotations."""
+"""Tools to extract (but not create) pdf annotations."""
 from __future__ import annotations
 
 import json
 import logging
-from typing import Optional
 from collections import defaultdict
-from typing import Any, List, Dict, Union
+from typing import Any, List, Dict, Optional, Union
 
 from PyPDF2.generic import ByteStringObject, IndirectObject
 from PyPDF2.pdf import PageObject
@@ -20,7 +19,6 @@ ADMISSIBLE_ANNOTATION_TYPES = {"rectangle", "oval", "ovál", "note"}
 
 class Annotation:
     """Data class representing one pdf-annotation."""
-    DEFAULT_LABEL: int = 1
 
     def __init__(
             self,
@@ -51,7 +49,10 @@ class Annotation:
 
 
 class AnnotationExtractor:
-    """Extracting raw annotations from pdfs."""
+    """Extract raw annotations from pdf.
+
+    The main method is `get_annots_from_pdf`.
+    """
 
     @staticmethod
     def _create_rectangle(box_as_list: List, page_height: Union[int, float], from_above: bool = True) -> Rectangle:
@@ -131,4 +132,3 @@ class AnnotationExtractor:
             js[page] = [annot.as_dict for annot in annotations[page]]
         with open(output_path, "w") as f:
             json.dump(js, f)
-
