@@ -75,7 +75,7 @@ class Scanner:
             text.setFont(font_name, bb.height)
             text.setTextRenderMode(3)  # invisible
             text.setTextOrigin(bb.x_min, pdf_height - bb.y_max)  # bottom-left corner
-            text.setHorizScale(100 * bb.width / new_pdf.stringWidth(word, "Helvetica", bb.height))
+            text.setHorizScale(100 * bb.width / new_pdf.stringWidth(word, font_name, bb.height))
             text.textLine(word)
             new_pdf.drawText(text)
 

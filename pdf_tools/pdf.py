@@ -183,13 +183,13 @@ class Pdf:
         :param tesseract_lang: language to expect
         :param tesseract_conf: tesseract configuration
         """
-        td, pdf_paths = mkdtemp(), []
+        temp_dir, pdf_paths = mkdtemp(), []
         for page_idx in range(self.number_of_pages):
             img = self.page_image(
                 page_idx=page_idx,
                 dpi=images_dpi,
                 recompute=True)  # this make take some time, but less than ocr
-            current_pdf_name = str(Path(td) / f"{page_idx}.pdf")
+            current_pdf_name = str(Path(temp_dir) / f"{page_idx}.pdf")
             pdf_paths.append(current_pdf_name)
             pdf_width, pdf_height = self.get_width_height(page_idx)
             img_for_ocr = img
@@ -203,7 +203,7 @@ class Pdf:
 
         combine_pdfs_into_one(output_pdf, *pdf_paths)
         # cleanup
-        shutil.rmtree(td)
+        shutil.rmtree(temp_dir)
 
     @staticmethod
     def get_bounding_box_of_elem(elem: html.HtmlElement) -> Rectangle:
