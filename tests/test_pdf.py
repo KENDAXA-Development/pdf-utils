@@ -165,8 +165,8 @@ class TestPdf(unittest.TestCase):
         im_recreated = recreated.page_image(0, dpi=150)
 
         # first page image original and reconstructed (widht equal dpi) should have approximately the same size
-        self.assertLess(abs(np.log(im_width) - np.log(im_recreated.size[0])), 0.05)
-        self.assertLess(abs(np.log(im_height) - np.log(im_recreated.size[1])), 0.05)
+        self.assertLess(abs(im_width - im_recreated.size[0]) / im_width, 0.05)
+        self.assertLess(abs(im_height - im_recreated.size[1]) / im_height, 0.05)
 
         # first page should be similar to the first reconstructed page (after resizing)
         im_recreated = im_recreated.resize((im_width, im_height))

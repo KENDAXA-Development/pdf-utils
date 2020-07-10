@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from collections import defaultdict
 from typing import Any, List, Dict, Optional, Union
 
@@ -81,6 +82,8 @@ class AnnotationExtractor:
     @staticmethod
     def dump_annotations_to_file(annotations: Dict[int, List[Annotation]], output_path: str) -> None:
         """Json serialization of a list of Annotations."""
+        assert os.path.isdir(os.path.dirname(output_path)), f"folder {os.path.dirname(output_path)} doesn't exist."
+
         js = {}
         for page in annotations:
             js[page] = [annot.as_dict for annot in annotations[page]]
@@ -92,6 +95,9 @@ class AnnotationExtractor:
                                          page_height: Union[int, float],
                                          from_above: bool = True) -> Rectangle:
         """Get the rectangle representing the bounding box of an annotation.
+
+        When extracting an annotation from PyPDF2 Reader, then the bounding box of an annotation
+        has some slightly unintuitive format. Here we convert it to our standard Rectangle object.
 
         :param box_as_list: list of 4 numbers, assumed to be (x_min, y_min, x_max, y_max).
             Vertical coordinates are increasing from below!
