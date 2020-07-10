@@ -29,7 +29,7 @@ class Pdf:
 
     parser = html.HTMLParser(encoding="utf-8")
 
-    def __init__(self, pdf_path: str) -> None:
+    def __init__(self, pdf_path: Union[str, Path]) -> None:
         """Define pdf path, pdf reader, initialize images."""
         self.pdf_path = Path(pdf_path)
         self.pdf_file = open(self.pdf_path, 'rb')
