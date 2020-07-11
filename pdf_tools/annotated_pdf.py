@@ -95,12 +95,10 @@ class AnnotatedPdf(Pdf):
 
         # enumerate flows
         flows_to_id = {flow: i for i, flow in enumerate(root.findall(".//flow"))}
-
-        # construct a dictionary {flow_id : annotations_in_context}
         flows_to_annot = {}
 
         # iterate over annotations whose types are within self.match_annotation_types
-        for annot in filter(self.match_annotation_types.__contains__, self.enriched_annotations):
+        for annot in self.enriched_annotations:
             if annot["words"]:
                 words = [w["word"] for w in annot["words"]]
                 # neighborhood of some words is a dict with keys 'flow', 'words', 'indices'
@@ -115,13 +113,14 @@ class AnnotatedPdf(Pdf):
                         "annotated_indices": defaultdict(list),
                         "page": annot["annotation"].page
                     }
-                # the annotation description is the text_content of the annotation,
-                # possibly after some normalization
-                annot_description = transform_anno_text_description(
-                    annot["annotation"].text_content)
+                # the annotation description is the text_content of the annotation, possibly after normalization
+                annot_text_content = annot["annotation"].text_content
+                if not annot_text_content:
+                    logging.warning(f"rectangle annotation with empty text_content found, annot={annot['annotation']}")
+                    continue
+                annot_description = transform_anno_text_description(annot_text_content)
                 # we add indices of annotated words into the annot_description
-                flows_to_annot[current_flow_id]["annotated_indices"][annot_description] += (
-                    neighborhood["indices"])
+                flows_to_annot[current_flow_id]["annotated_indices"][annot_description] += neighborhood["indices"]
 
         # add flows with no annotation, if needed
         if get_all_flows:
