@@ -68,27 +68,19 @@ class AnnotationExtractor:
     """
 
     @staticmethod
-    def get_annot_from_pdf(pdf: Pdf) -> Dict[int, List[Annotation]]:
-        """Fetch annotations from annotated pdf and outputs as a dictionary.
-
-        :param pdf: Pdf object (object of kx_signatures.pdf.Pdf class)
-        return: dictionary {page_num : [list_of_annotations_on_that_page]}
-        """
+    def get_annot_from_pdf(pdf: Pdf) -> List[Annotation]:
+        """Fetch annotations from annotated pdf and outputs as a list of annotation objects."""
         outputs = []
         for idx in range(pdf.number_of_pages):
             outputs += AnnotationExtractor._parse_annot_pdf_page(pdf.pdf_reader.getPage(idx), idx)
-        return AnnotationExtractor._group_by_pages(outputs)
+        return outputs
 
     @staticmethod
-    def dump_annotations_to_file(annotations: Dict[int, List[Annotation]], output_path: str) -> None:
+    def dump_annotations_to_file(annotations: List[Annotation], output_path: str) -> None:
         """Json serialization of a list of Annotations."""
         assert os.path.isdir(os.path.dirname(output_path)), f"folder {os.path.dirname(output_path)} doesn't exist."
-
-        js = {}
-        for page in annotations:
-            js[page] = [annot.as_dict for annot in annotations[page]]
         with open(output_path, "w") as f:
-            json.dump(js, f)
+            json.dump([annot.as_dict for annot in annotations], f)
 
     @staticmethod
     def _create_annotations_bounding_box(box_as_list: List,
