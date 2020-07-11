@@ -1,7 +1,7 @@
 """Tools to digitalize annotations from a pdf.
 
 While the pdf_tools.annotation.AnnotationExtractor fetches the raw annotations, here we match their bounding boxes
-with actual words.
+with actual words, and provide tools for seeing these words in context.
 """
 import logging
 from collections import defaultdict
@@ -40,9 +40,9 @@ class AnnotatedPdf(Pdf):
     def enriched_annotations(self) -> List[Dict]:
         """Extract 'rectangle' annotations with matched words.
 
-        Enriched_annotations contain information about textual content.
-        Here we assume that the pdf is 'digital', or has been ocred already.
-        The structure is
+        Enriched_annotations contain information about pdf textual content within the annotation's bounding-box.
+        We assume that the pdf is 'digital', or has been ocred already.
+        The return value has structure
         [{
             "annotation": annotation,
             "words": [{"word": word_as_html_element, "bounding_box": Rectangle, "score": float}, ...]},
@@ -63,21 +63,27 @@ class AnnotatedPdf(Pdf):
         The poppler pdftotext output structures a document into
             pages > flows > blocks > lines > words.
         Here we work on the level of `flow`s, which are typically paragraphs or small blocks of text.
-        With every annotation with of type `self.match_annotation_types`, we find the corresponding flow,
+        With every annotation of type `self.match_annotation_types`, we find the corresponding flow,
         and return the word and annotated indices within this flow.
 
-        The return dictionary has type
-        {
-            flow_index: {
-                "words": [list of words in the flow],
-                "page": page number, starting from 0,
-                "annotated_indices": {
-                    annotation_description: [list_of_indices_of_words],
-                    annather_annotation_description: [list of indices],
-                    ...
+        :param transform_anno_text_description:
+            a function to convert the annotations "text_content" into another string (identity by default).
+            This can be used if we want to normalize text_content  comming from different annotators, for instance.
+        :param get_all_flows:
+            if False, only flows with at least one annotation are returned.
+        :return:
+            The return dictionary has type
+            {
+                flow_index: {
+                    "words": [list of words in the flow],
+                    "page": page number, starting from 0,
+                    "annotated_indices": {
+                        annotation_description: [list_of_indices_of_words],
+                        annather_annotation_description: [list of indices],
+                        ...
+                    }
                 }
-            }
-        }.
+            }.
         """
         # Get html root
         root = self.text_with_bb
