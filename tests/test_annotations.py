@@ -54,7 +54,7 @@ class TestAnnotation(unittest.TestCase):
             type="oval",
             box=Rectangle(x_min=55.7, y_min=133.72, x_max=338.9, y_max=177.23),
             text_content="add Honza",
-            who_annotated="peter")
+            who_annotated="peter"),
     ]
 
     def test_assertion_in_annotation_type(self):
@@ -90,10 +90,17 @@ class TestAnnotation(unittest.TestCase):
     def test_annotation_extraction(self):
         """Extract annotation from file and check that they correspond to expected annotations."""
         annotations = self.extractor.get_annot_from_pdf(self.annotated_pdf)
+
+        # each annotation is found in expected
         for annot in annotations:
             self.assertTrue(
                 any(annotations_are_similar(annot, other)
                     for other in self.expected_annotations))
+        # each expected annotation is found in annotations
+        for exp_annot in self.expected_annotations:
+            self.assertTrue(
+                any(annotations_are_similar(exp_annot, other)
+                    for other in annotations))
 
     def test_dump_annotations_to_file(self):
         """Dump annotations to file, load them from file, and compare that all is consistent."""

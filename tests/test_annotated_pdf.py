@@ -12,8 +12,12 @@ from pdf_tools.pdf_handler import Pdf
 class TestAnnotatedPdf(unittest.TestCase):
 
     here = Path(__file__).parent
+
+    pdf_path = str(here / "data_git" / "example.pdf")
+
     annotated_pdf_path = str(here / "data_git" / "example_annotated.pdf")
     annotated_pdf = AnnotatedPdf(annotated_pdf_path)
+
     extracted_annots = AnnotationExtractor.get_annot_from_pdf(annotated_pdf)
 
     def test_raw_annotations(self):
@@ -45,6 +49,11 @@ class TestAnnotatedPdf(unittest.TestCase):
             self.assertLess(
                 word_bb.intersection(rectangle_annots[0].box).area / word_bb.area - w["score"],
                 0.01)
+
+    def test_pdf_with_no_anno(self):
+        pdf_no_annot = AnnotatedPdf(self.pdf_path)
+        self.assertListEqual(pdf_no_annot.raw_annotations, [])
+        self.assertListEqual(pdf_no_annot.enriched_annotations, [])
 
     def test_annotated_flows(self):
         """Test annotated flows extracted from pre-defined document.
