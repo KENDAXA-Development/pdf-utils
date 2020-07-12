@@ -1,3 +1,4 @@
+import re
 import unittest
 from pathlib import Path
 
@@ -6,6 +7,7 @@ from tests.object_similarity import annotations_are_similar
 from pdf_tools.annotated_pdf import AnnotatedPdf
 from pdf_tools.annotation import AnnotationExtractor
 from pdf_tools.pdf_handler import Pdf
+
 
 class TestAnnotatedPdf(unittest.TestCase):
 
@@ -45,5 +47,45 @@ class TestAnnotatedPdf(unittest.TestCase):
                 0.01)
 
     def test_annotated_flows(self):
-        from pprint import pprint
-        pprint(self.annotated_pdf.get_flows_with_annotations())
+        """Test annotated flows extracted from pre-defined document.
+
+        The annotated words with annotation's text_content equal to "risk" should be words
+        that approximately look like "Being killed at train station".
+
+        If we cann the get_flows_with_annotations method with a non-default parameter transform_anno_text_description,
+        then the annotation's text_content is normalized first; here we test a normalization that keeps first char only.
+        """
+        risk_pattern = re.compile(r"Being\s+killed\s+at\s+train\s+station")
+        deductible_pattern = re.compile(r"1\s?%")
+        currency_pattern = re.compile(r"Euro")
+
+        annotated_flows = self.annotated_pdf.get_flows_with_annotations()
+        # here we convert each annotation's text_content into the first lower-cased character only
+        annotated_flows_with_one_char_annotations = self.annotated_pdf.get_flows_with_annotations(
+            transform_anno_text_description=lambda text: text.lower()[0]
+        )
+
+        for flow_id in annotated_flows:
+            current_flow = annotated_flows[flow_id]
+            current_flow_one_char_annot = annotated_flows_with_one_char_annotations[flow_id]
+
+            for k in current_flow["annotated_indices"]:
+                annotated_text = ' '.join(current_flow["words"][i] for i in current_flow["annotated_indices"][k])
+                if k == "risk":
+                    self.assertTrue(risk_pattern, annotated_text)
+                if k == "deductible in %":
+                    self.assertTrue(deductible_pattern, annotated_text)
+                if k == "currency":
+                    self.assertTrue(currency_pattern, annotated_text)
+
+            for k in current_flow_one_char_annot["annotated_indices"]:
+                annotated_text = ' '.join(current_flow["words"][i] for i in current_flow["annotated_indices"][k])
+                # here we expected one-character keys
+                self.assertTrue(len(k) == 1)
+                # 'r' stands for 'risk', etc
+                if k == "r":
+                    self.assertTrue(risk_pattern, annotated_text)
+                if k == "d":
+                    self.assertTrue(deductible_pattern, annotated_text)
+                if k == "c":
+                    self.assertTrue(currency_pattern, annotated_text)

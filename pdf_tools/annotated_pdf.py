@@ -95,7 +95,7 @@ class AnnotatedPdf(Pdf):
 
         # enumerate flows
         flows_to_id = {flow: i for i, flow in enumerate(root.findall(".//flow"))}
-        flows_to_annot = {}
+        annotated_flows = {}
 
         # iterate over annotations whose types are within self.match_annotation_types
         for annot in self.enriched_annotations:
@@ -106,9 +106,10 @@ class AnnotatedPdf(Pdf):
                 if neighborhood is None:
                     logging.error(f"cannot get annotated flows for {self.pdf_path}")
                     continue
+                # here we find in which flow the annotation is
                 current_flow_id = flows_to_id[neighborhood["flow"]]
-                if current_flow_id not in flows_to_annot:
-                    flows_to_annot[current_flow_id] = {
+                if current_flow_id not in annotated_flows:
+                    annotated_flows[current_flow_id] = {
                         "words": neighborhood["words"],
                         "annotated_indices": defaultdict(list),
                         "page": annot["annotation"].page
@@ -120,21 +121,28 @@ class AnnotatedPdf(Pdf):
                     continue
                 annot_description = transform_anno_text_description(annot_text_content)
                 # we add indices of annotated words into the annot_description
-                flows_to_annot[current_flow_id]["annotated_indices"][annot_description] += neighborhood["indices"]
+                annotated_flows[current_flow_id]["annotated_indices"][annot_description] += neighborhood["indices"]
 
-        # add flows with no annotation, if needed
+        # add remaining flows that have no rectangle annotation
+        return self._extend_annotated_flows(get_all_flows, annotated_flows, flows_to_id)
+
+    def _extend_annotated_flows(self, get_all_flows, annotated_flows, flows_to_id):
+        """Add all flows to current_annotated_flows.
+
+        The others are assumed to have no rectangle-type annotations.
+        """
         if get_all_flows:
-            for page_num, page in enumerate(root.findall(".//page")):
+            for page_num, page in enumerate(self.text_with_bb.findall(".//page")):
                 for flow in page.findall(".//flow"):
                     flow_id = flows_to_id[flow]
-                    if flow_id not in flows_to_annot:
-                        flows_to_annot[flow_id] = {
+                    if flow_id not in annotated_flows:
+                        annotated_flows[flow_id] = {
                             "words": [w.text for w in flow.findall(".//word")],
                             "page": page_num,
                             "annotated_indices": defaultdict(list),
                         }
 
-        return dict(sorted(flows_to_annot.items()))
+        return dict(sorted(annotated_flows.items()))
 
     @staticmethod
     def _get_scored_words(words_in_page: List[html.HtmlElement],
