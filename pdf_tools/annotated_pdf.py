@@ -3,11 +3,15 @@
 While the pdf_tools.annotation.AnnotationExtractor fetches the raw annotations, here we match their bounding boxes
 with actual words, and provide tools for seeing these words in context.
 """
+from __future__ import annotations
+
 import logging
 from collections import defaultdict
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Union
 
+from PyPDF2 import PdfFileReader, PdfFileWriter
+from PyPDF2.generic import NameObject, IndirectObject, NumberObject
 from lxml import html
 
 from pdf_tools.annotation import Annotation, AnnotationExtractor
@@ -199,11 +203,10 @@ class AnnotatedPdf(Pdf):
         """Match boxes from annotations and bounding boxes of words.
 
         :param raw_annotations: annotations as extracted by AnnotationExtractor
-        :return: dictionary of type
-         { page_num: [
-            {"annotation": Annotation, "words": [{"word": word_as_html_element, "score": overlap_score}, ...]}, ...
-            ]
-        }.
+        :return: dictionary a list of type
+        [{
+            "annotation": Annotation,
+            "words": [{"word": word_as_html_element, "score": overlap_score}, ...]}]
         The score is always the intersection over union from annotation box and the bounding box of word.
         """
         pages = self.get_pages()
@@ -254,3 +257,101 @@ class AnnotatedPdf(Pdf):
             "words": words_in_section,
             "indices": annotated_indices
         }
+
+    def _clean_writer(self) -> PdfFileWriterX:
+        """Return a FileWriter linked with a pdf copy with all annotations removed."""
+        pdf = PdfFileWriterX()
+        pdf.cloneDocumentFromReader(self.pdf_reader)
+        for i in range(self.number_of_pages):
+            page = pdf.getPage(i)
+            if '/Annots' in page:
+                del page['/Annots']
+        return pdf
+
+    def remove_annotations_and_save(self, output_pdf_path: str) -> None:
+        """Get rid of annotations and store to a new pdf file."""
+        clean = self._clean_writer()
+        with open(output_pdf_path, "wb") as f:
+            logging.info(f"creating a new pdf {output_pdf_path}")
+            clean.write(f)
+
+
+class PdfFileWriterX(PdfFileWriter):
+    """This is overwriting of original class because if cloning issue.
+
+    The fix is copy-paste from https://github.com/mstamy2/PyPDF2/issues/219#issuecomment-131252808.
+    """
+
+    def cloneDocumentFromReader(self, reader: PdfFileReader, *args):
+        """Create a copy (clone) of a document from a PDF file reader.
+
+        :param reader: PDF file reader instance from which the clone
+            should be created.
+        :callback after_page_append (function): Callback function that is invoked after
+            each page is appended to the writer. Signature includes a reference to the
+            appended page (delegates to appendPagesFromReader). Callback signature:
+
+            :param writer_pageref (PDF page reference): Reference to the page just
+                appended to the document.
+        """
+        mustAddTogether = False
+        newInfoRef = self._info
+        oldPagesRef = self._pages
+        oldPages = self.getObject(self._pages)
+
+        # If there have already been any number of pages added
+
+        if oldPages[NameObject("/Count")] > 0:
+            # Keep them
+            mustAddTogether = True
+        else:
+            # Through the page object out
+            if oldPages in self._objects:
+                newInfoRef = self._pages
+                self._objects.remove(oldPages)
+
+        # Clone the reader's root document
+        self.cloneReaderDocumentRoot(reader)
+        if not self._root:
+            self._root = self._addObject(self._root_object)
+
+        # Sweep for all indirect references
+        externalReferenceMap = {}
+        self.stack = []
+        newRootRef = self._sweepIndirectReferences(externalReferenceMap, self._root)
+
+        # Delete the stack to reset
+        del self.stack
+
+        # Clean-Up Time!!!
+        # Get the new root of the PDF
+        realRoot = self.getObject(newRootRef)
+
+        # Get the new pages tree root and its ID Number
+        tmpPages = realRoot[NameObject("/Pages")]
+        newIdNumForPages = 1 + self._objects.index(tmpPages)
+
+        # Make an IndirectObject just for the new Pages
+        self._pages = IndirectObject(newIdNumForPages, 0, self)
+
+        # If there are any pages to add back in
+        if mustAddTogether:
+            # Set the new page's root's parent to the old
+            # page's root's reference
+            tmpPages[NameObject("/Parent")] = oldPagesRef
+            # Add the reference to the new page's root in
+            # the old page's kids array
+
+            newPagesRef = self._pages
+            oldPages[NameObject("/Kids")].append(newPagesRef)
+            # Set all references to the root of the old/new
+            # page's root
+            self._pages = oldPagesRef
+            realRoot[NameObject("/Pages")] = oldPagesRef
+            # Update the count attribute of the page's root
+            oldPages[NameObject("/Count")] = \
+                NumberObject(oldPages[NameObject("/Count")] + tmpPages[NameObject("/Count")])
+        else:
+            # Bump up the info's reference b/c the old
+            # page's tree was bumped off
+            self._info = newInfoRef

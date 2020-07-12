@@ -1,8 +1,12 @@
+import os
 import re
 import unittest
 from pathlib import Path
+from tempfile import mkstemp
 
-from tests.object_similarity import annotations_are_similar
+import numpy as np
+from PIL import Image
+from tests.object_similarity import annotations_are_similar, naive_image_similarity
 
 from pdf_tools.annotated_pdf import AnnotatedPdf
 from pdf_tools.annotation import AnnotationExtractor
@@ -98,3 +102,23 @@ class TestAnnotatedPdf(unittest.TestCase):
                     self.assertTrue(deductible_pattern, annotated_text)
                 if k == "c":
                     self.assertTrue(currency_pattern, annotated_text)
+
+    def test_annotation_removal(self):
+        temp_pdf_file = mkstemp()[1]
+        self.annotated_pdf.remove_annotations_and_save(temp_pdf_file)
+        pdf_no_annots = AnnotatedPdf(temp_pdf_file)
+
+        # no annotations should be in this new pdf_no_annots
+        self.assertListEqual(pdf_no_annots.raw_annotations, [])
+
+        # first page should look similar than the reference page
+        first_page_no_anno = pdf_no_annots.page_image(0, dpi=150)
+        first_im_ref = Image.open(str(self.here / "data_git" / "example_150-1.png"))
+        self.assertGreater(
+            naive_image_similarity(
+                np.array(first_im_ref),
+                np.array(first_page_no_anno.resize(first_im_ref.size))),
+            0.99
+        )
+
+        os.remove(temp_pdf_file)
