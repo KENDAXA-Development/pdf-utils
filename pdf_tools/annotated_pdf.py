@@ -24,11 +24,9 @@ class AnnotatedPdf(Pdf):
     minimal_words_in_document = 10
 
     def __init__(self, pdf_path: Union[str, Path]) -> None:
-        """Fetch annotations and match their bounding boxes with words in the document."""
         super().__init__(pdf_path)
         self._raw_annotations = None
         self._enriched_annotations = None
-
         self._flow_to_id = None
 
     @property
@@ -57,8 +55,8 @@ class AnnotatedPdf(Pdf):
         return self._enriched_annotations
 
     def get_flows_with_annotations(self,
-                                   transform_anno_text_description: Callable[[str], str] = lambda s: s,
-                                   get_all_flows: bool = True) -> Dict[int, Dict]:
+                                   transform_anno_text_description: Callable[[str], str] = lambda s: s
+                                   ) -> Dict[int, Dict]:
         """Extract 'rectangle'-type annotations in the context of neighboring words or sentences.
 
         For this to work, we expect that the pdf is digital, or has been ocred before.
@@ -66,14 +64,13 @@ class AnnotatedPdf(Pdf):
         The poppler pdftotext output structures a document into
             pages > flows > blocks > lines > words.
         Here we work on the level of `flow`s, which are typically paragraphs or small blocks of text.
-        With every annotation of type `self.match_annotation_types`, we find the corresponding flow,
-        and return the word and annotated indices within this flow.
+
+        With every annotation of 'rectangle' type, we find the corresponding flow and return the words
+        and indices of annotated words within this flow.
 
         :param transform_anno_text_description:
             a function to convert the annotations "text_content" into another string (identity function by default).
             This can be used if we want to normalize text_content comming from different annotators, for instance.
-        :param get_all_flows:
-            if False, only flows with at least one annotation are returned.
         :return:
             The return dictionary has type
             {
@@ -219,32 +216,33 @@ class AnnotatedPdf(Pdf):
                     "words": self._find_words_related_to_one_annotation(annot, pages[annot.page])})
         return matched_annotations
 
-    def _get_neighborhood_of_words(self, annotated_words: List[html.HtmlElement]) -> Optional[Dict]:
+    def _get_neighborhood_of_words(self, words: List[html.HtmlElement]) -> Optional[Dict]:
         """For a list of given words, compute the corresponding section and indices of these words within section.
 
         The html structure of the pdf consists hierarchically of pages, flows, blocks, lines, and words.
         This method finds the parent flow of a list of words, and returns indices of words.
 
-        :param annotated_words: list of words, represented as html-elements
+        :param words: list of words, represented as html-elements
         :return: a dictionary with form
            'flow': flow as a html-element
            'words': list of words in the flow (as strings)
            'indices': list of indices of the words that are within annotated_words.
         """
-        if not annotated_words:
+        if not words:
             logging.error(f"no annotated_words, cannot create neighborhood ({self.pdf_path})")
             return None
-        parents = [w.getparent().getparent().getparent() for w in annotated_words]
+        # grand-grand-parents of a word is a flow
+        parents = [w.getparent().getparent().getparent() for w in words]
         if not len(set(parents)) == 1:
             logging.error(f"words in the annotation are in different flows, cannot fetch neighborhood "
                           f"(file {self.pdf_path})")
             return None
 
-        common_parent = parents[0]
+        ancestor = parents[0]
         annotated_indices, words_in_section = [], []
-        for i, word in enumerate(common_parent.findall(".//word")):
+        for i, word in enumerate(ancestor.findall(".//word")):
             words_in_section.append(word.text)
-            if word in annotated_words:
+            if word in words:
                 annotated_indices.append(i)
 
         # checks if annotated words follow subsequently
@@ -252,7 +250,7 @@ class AnnotatedPdf(Pdf):
             logging.warning(f"annotated words are not connected (file {self.pdf_path})")
 
         return {
-            "flow": common_parent,
+            "flow": ancestor,
             "words": words_in_section,
             "indices": annotated_indices
         }
