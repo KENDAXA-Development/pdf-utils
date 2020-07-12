@@ -29,6 +29,8 @@ class AnnotatedPdf(Pdf):
         self._raw_annotations = None
         self._enriched_annotations = None
 
+        self._flow_to_id = None
+
     @property
     def raw_annotations(self) -> List[Annotation]:
         """Extract annotations from pdf."""
@@ -60,6 +62,7 @@ class AnnotatedPdf(Pdf):
         """Extract 'rectangle'-type annotations in the context of neighboring words or sentences.
 
         For this to work, we expect that the pdf is digital, or has been ocred before.
+
         The poppler pdftotext output structures a document into
             pages > flows > blocks > lines > words.
         Here we work on the level of `flow`s, which are typically paragraphs or small blocks of text.
@@ -67,8 +70,8 @@ class AnnotatedPdf(Pdf):
         and return the word and annotated indices within this flow.
 
         :param transform_anno_text_description:
-            a function to convert the annotations "text_content" into another string (identity by default).
-            This can be used if we want to normalize text_content  comming from different annotators, for instance.
+            a function to convert the annotations "text_content" into another string (identity function by default).
+            This can be used if we want to normalize text_content comming from different annotators, for instance.
         :param get_all_flows:
             if False, only flows with at least one annotation are returned.
         :return:
@@ -85,64 +88,61 @@ class AnnotatedPdf(Pdf):
                 }
             }.
         """
-        # Get html root
-        root = self.text_with_bb
-
         # check if digital content exists
-        if len(root.findall(".//word")) < self.minimal_words_in_document:
+        if len(self.text_with_bb.findall(".//word")) < self.minimal_words_in_document:
             logging.error("Cannot extract digital content from pdf (no words there).")
             return {}
 
         # enumerate flows
-        flows_to_id = {flow: i for i, flow in enumerate(root.findall(".//flow"))}
-        annotated_flows = {}
+        flows_to_id = self._enumerate_flows()
+        # create flows with words, but no annotations yet
+        annotated_flows = self._initialize_flows()
 
         # iterate over annotations whose types are within self.match_annotation_types
         for annot in self.enriched_annotations:
-            if annot["words"]:
-                words = [w["word"] for w in annot["words"]]
-                # neighborhood of some words is a dict with keys 'flow', 'words', 'indices'
-                neighborhood = self._get_neighborhood_of_words(words)
-                if neighborhood is None:
-                    logging.error(f"cannot get annotated flows for {self.pdf_path}")
-                    continue
-                # here we find in which flow the annotation is
-                current_flow_id = flows_to_id[neighborhood["flow"]]
-                if current_flow_id not in annotated_flows:
-                    annotated_flows[current_flow_id] = {
-                        "words": neighborhood["words"],
-                        "annotated_indices": defaultdict(list),
-                        "page": annot["annotation"].page
-                    }
-                # the annotation description is the text_content of the annotation, possibly after normalization
-                annot_text_content = annot["annotation"].text_content
-                if not annot_text_content:
-                    logging.warning(f"rectangle annotation with empty text_content found, annot={annot['annotation']}")
-                    continue
-                annot_description = transform_anno_text_description(annot_text_content)
-                # we add indices of annotated words into the annot_description
-                annotated_flows[current_flow_id]["annotated_indices"][annot_description] += neighborhood["indices"]
+            if not annot["words"]:
+                logging.warning(f"annotation {annot} found with no words")
+                continue
 
-        # add remaining flows that have no rectangle annotation
-        return self._extend_annotated_flows(get_all_flows, annotated_flows, flows_to_id)
-
-    def _extend_annotated_flows(self, get_all_flows, annotated_flows, flows_to_id):
-        """Add all flows to current_annotated_flows.
-
-        The others are assumed to have no rectangle-type annotations.
-        """
-        if get_all_flows:
-            for page_num, page in enumerate(self.text_with_bb.findall(".//page")):
-                for flow in page.findall(".//flow"):
-                    flow_id = flows_to_id[flow]
-                    if flow_id not in annotated_flows:
-                        annotated_flows[flow_id] = {
-                            "words": [w.text for w in flow.findall(".//word")],
-                            "page": page_num,
-                            "annotated_indices": defaultdict(list),
-                        }
+            # create a list of html-elements representing annotated words
+            words = [w["word"] for w in annot["words"]]
+            # neighborhood of some words is a dict with keys 'flow', 'words', 'indices'
+            neighborhood = self._get_neighborhood_of_words(words)
+            if neighborhood is None:
+                logging.error(f"cannot get annotated flows for {self.pdf_path}")
+                continue
+            # here we find in which flow the annotation is
+            current_flow_id = flows_to_id[neighborhood["flow"]]
+            annot_text_content = annot["annotation"].text_content
+            if not annot_text_content:
+                logging.warning(f"rectangle annotation with empty text_content found, annot={annot['annotation']}")
+                continue
+            # normalize annotation's text_content
+            annot_description = transform_anno_text_description(annot_text_content)
+            # we add indices of annotated words into the annot_description
+            annotated_flows[current_flow_id]["annotated_indices"][annot_description] += neighborhood["indices"]
 
         return dict(sorted(annotated_flows.items()))
+
+    def _initialize_flows(self) -> Dict[int, Dict]:
+        """Create a dictionary from flow_id to information about words in this flow."""
+        flows = {}
+        flow_to_id = self._enumerate_flows()
+        for page_num, page in enumerate(self.text_with_bb.findall(".//page")):
+            for flow in page.findall(".//flow"):
+                flow_id = flow_to_id[flow]
+                flows[flow_id] = {
+                    "words": [w.text for w in flow.findall(".//word")],
+                    "page": page_num,
+                    "annotated_indices": defaultdict(list),
+                }
+        return flows
+
+    def _enumerate_flows(self, recompute: bool = False) -> Dict[html.HtmlElement, int]:
+        """Get a dictionary from flow (as html element) to flow_id (integer)."""
+        if self._flow_to_id is None or recompute:
+            self._flow_to_id = {flow: i for i, flow in enumerate(self.text_with_bb.findall(".//flow"))}
+        return self._flow_to_id
 
     @staticmethod
     def _get_scored_words(words_in_page: List[html.HtmlElement],
