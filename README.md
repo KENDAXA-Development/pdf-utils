@@ -9,9 +9,8 @@ Support for
 * locating positions of words
 * fetching pdf annotations
 * adding digital layer to image-pdfs
-* re-creating a clean pdf file with annotations removed,
+* re-creating a clean pdf file with annotations removed
 
-etc
 
 ## Dependencies
 
@@ -19,3 +18,7 @@ Main tool for reading pdf files is the PyPDF2 library.
 
 Apart of pip requirement, you should have [Poppler](https://poppler.freedesktop.org/) and [Tesseract](https://tesseract-ocr.github.io/tessdoc/Home.html) installed. 
 We use Poppler mainly for extracting images and text from pdfs, and Tesseract is needed for pytesseract.
+
+## How to
+
+Some examples of usage are shown in the [notebook]("notebook/Demo.ipynb").
