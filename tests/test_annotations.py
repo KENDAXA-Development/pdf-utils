@@ -1,7 +1,6 @@
 import json
 import os
 import unittest
-from pathlib import Path
 from tempfile import mkstemp
 
 from tests import annotated_pdf_path

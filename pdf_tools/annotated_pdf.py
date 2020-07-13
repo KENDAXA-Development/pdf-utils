@@ -123,7 +123,7 @@ class AnnotatedPdf(Pdf):
             # we add indices of annotated words into the annot_description
             annotated_flows[current_flow_id]["annotated_indices"][annot_description] += neighborhood["indices"]
 
-        return dict(sorted(annotated_flows.items()))
+        return annotated_flows
 
     def _match_annotations_with_words(self) -> List[Dict]:
         """Extract 'rectangle' annotations with matched words.
@@ -224,7 +224,7 @@ class AnnotatedPdf(Pdf):
            'words': list of words in the flow (as strings)
            'indices': list of indices of the words that are within annotated_words.
         """
-        assert words,  f"no annotated_words, cannot create neighborhood ({self.pdf_path})"
+        assert words, f"no annotated_words, cannot create neighborhood ({self.pdf_path})"
 
         # grand-grand-parents of a word is a flow
         parents = [w.getparent().getparent().getparent() for w in words]

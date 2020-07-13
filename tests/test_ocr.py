@@ -1,7 +1,6 @@
 import os
 import re
 import unittest
-from pathlib import Path
 from tempfile import mkstemp
 
 from tests import pdf_path
