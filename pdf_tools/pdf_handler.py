@@ -4,16 +4,19 @@ Main methods support extracting textual content, extracting images, localizing p
 extracting annotations, and converting an image-like pdf into "searchable" pdf via doing ocr.
 """
 import logging
+import shutil
 import subprocess
 from pathlib import Path
-from typing import Tuple, List, Union, Dict, Optional
+from tempfile import mkdtemp
+from typing import Iterable, Tuple, List, Union, Dict, Optional
 
 import numpy as np
 from PIL import Image
 from PyPDF2 import PdfFileReader
 from lxml import html
 
-from pdf_tools.converter import image_from_pdf_page
+from pdf_tools.converter import image_from_pdf_page, merge_pdfs
+from pdf_tools.ocr import Scanner
 from pdf_tools.rectangle import Rectangle
 
 
@@ -90,6 +93,7 @@ class Pdf:
         """Get the image of a pdf page.
 
         If the page has internal nonzero "Rotation", we ignore it; we just call pdftoppm and don't rotate anything.
+        Note that a second call, even with different dpi, will return the cached image, unless 'recompute' flag is on.
 
         :param page_idx: page number, starting from zero
         :param dpi: dpi
@@ -113,9 +117,9 @@ class Pdf:
         return img
 
     @property
-    def images(self) -> List[Image.Image]:
+    def images(self) -> Iterable[Image.Image]:
         """Return all images as a list."""
-        return [self.page_image(page_idx) for page_idx in range(self.number_of_pages)]
+        return (self.page_image(page_idx) for page_idx in range(self.number_of_pages))
 
     def _extract_text_from_pdf(self, pdftotext_layout_argument: Optional[str] = None) -> str:
         """Get textual pdf content. Wrapper of Poppler's pdftotext.
@@ -129,19 +133,22 @@ class Pdf:
         return subprocess.check_output(
             pdftotext_args + [str(self.pdf_path), "-"], universal_newlines=True)
 
-    def get_simple_text(self) -> str:
+    @property
+    def simple_text(self) -> str:
         """Use `pdftotext` to extract textual content."""
         if self._simple_text is None:
             self._simple_text = self._extract_text_from_pdf()
         return self._simple_text
 
-    def get_layout_text(self) -> str:
+    @property
+    def layout_text(self) -> str:
         """Use `pdftotext -layout` to extract textual content."""
         if self._layout_text is None:
             self._layout_text = self._extract_text_from_pdf("-layout")
         return self._layout_text
 
-    def get_text_with_bb(self) -> html.HtmlElement:
+    @property
+    def text_with_bb(self) -> html.HtmlElement:
         """Get textual content including bounding boxes of each word, represented as the root of the xml tree."""
         if self._root is None:
             bbox_text = self._extract_text_from_pdf("-bbox-layout")
@@ -151,7 +158,7 @@ class Pdf:
     def get_pages(self) -> Dict[int, List[html.HtmlElement]]:
         """Return a dictionary {page_num: list_of_words (as xml elements)}."""
         res = {}
-        root = self.get_text_with_bb()
+        root = self.text_with_bb
         for page_num, page in enumerate(root.findall(".//page")):
             res[page_num] = page.findall(".//word")
         return res
@@ -161,6 +168,45 @@ class Pdf:
         return {
             page_nr: list(map(lambda w: w.text if w.text is not None else "", words))
             for page_nr, words in self.get_pages().items()}
+
+    def recreate_digital_content(self,
+                                 output_pdf: str,
+                                 images_dpi: int = 150,
+                                 higher_dpi_for_scan: Optional[int] = None,
+                                 tesseract_lang: str = "eng",
+                                 tesseract_conf: str = "") -> None:
+        """Get images, do OCR and create a new pdf with new text layer.
+
+        Can be useful for documents which are only images.
+        If there is a textual layer at the beginning, it will be lost.
+
+        :param output_pdf: path to the output pdf file
+        :param images_dpi: resolution of images that will be used for ocr, and that will be inserted into the final pdf
+        :param higher_dpi_for_scan: if not None, higher resolution image will be created for ocr only
+        :param tesseract_lang: language to expect
+        :param tesseract_conf: tesseract configuration
+        """
+        temp_dir, pdf_paths = mkdtemp(), []
+        for page_idx in range(self.number_of_pages):
+            img = self.page_image(
+                page_idx=page_idx,
+                dpi=images_dpi,
+                recompute=True)  # this make take some time, but less than ocr
+            current_pdf_name = str(Path(temp_dir) / f"{page_idx}.pdf")
+            pdf_paths.append(current_pdf_name)
+            pdf_width, pdf_height = self.get_width_height(page_idx)
+            img_for_ocr = img
+            if higher_dpi_for_scan is not None:
+                if higher_dpi_for_scan < images_dpi:
+                    logging.warning("lower resolution is used for OCR than for insertion into the pdf; ocr can be bad")
+                img_for_ocr = self.page_image(page_idx, dpi=higher_dpi_for_scan, recompute=True)
+            ocr_text = Scanner.ocr_one_image(img_for_ocr, tesseract_lang, tesseract_conf)
+            Scanner.image_to_one_page_ocred_pdf(
+                img, current_pdf_name, pdf_width=pdf_width, pdf_height=pdf_height, ocr_text=ocr_text)
+
+        merge_pdfs(output_pdf, *pdf_paths)
+        # cleanup
+        shutil.rmtree(temp_dir)
 
     @staticmethod
     def get_bounding_box_of_elem(elem: html.HtmlElement) -> Rectangle:

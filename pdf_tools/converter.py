@@ -1,14 +1,12 @@
-"""Various basic tools for conversions between pdf's, text, images and words and word indices.
-
-The most basic conversion function are just wrappers around the Poppler utils `pdftotext` and `pdftoppm`.
-"""
+"""Various basic tools for conversions between pdf's, text, images and words and word indices."""
+import subprocess
 from typing import Union, List, Tuple, Dict
 
 import numpy as np
 import pdf2image
 from PIL import Image
 
-from .rectangle import Rectangle
+from pdf_tools.rectangle import Rectangle
 
 
 class RotatedPdfException(Exception):
@@ -74,6 +72,11 @@ def pdf_box_to_image_box(pdf_box: Rectangle,
 def save_images_to_pdf(images: List[Image.Image], output_pdf: str) -> None:
     """Save a list of images as a vanilla image-pdf (no text content), each image on one page."""
     images[0].save(output_pdf, "PDF", save_all=True, append_images=images[1:])
+
+
+def merge_pdfs(output_pdf_path, *pdf_paths):
+    """Merge pdfs."""
+    subprocess.run(["pdfunite", *pdf_paths, output_pdf_path])
 
 
 def get_indices_of_words(words: List[str], char_span: Tuple[int, int]) -> Dict:
