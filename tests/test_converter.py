@@ -5,11 +5,11 @@ from tempfile import mkstemp
 
 import numpy as np
 from PIL import Image
-from tests import pdf_path, first_page_150_dpi_path, second_page_150_dpi_path
-from tests.object_similarity import naive_image_similarity
 
 from pdf_tools import converter
 from pdf_tools.rectangle import Rectangle
+from tests import pdf_path, first_page_150_dpi_path, second_page_150_dpi_path
+from tests.object_similarity import naive_image_similarity
 
 
 class TestRectangle(unittest.TestCase):

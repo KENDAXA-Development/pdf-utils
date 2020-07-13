@@ -3,10 +3,9 @@ import re
 import unittest
 from tempfile import mkstemp
 
-from tests import pdf_path
-
 from pdf_tools.ocr import Scanner
 from pdf_tools.pdf_handler import Pdf
+from tests import pdf_path
 
 
 class TestScanner(unittest.TestCase):
