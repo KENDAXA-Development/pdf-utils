@@ -107,7 +107,7 @@ class AnnotationExtractor:
     def _parse_annot_pdf_page(page: PageObject, page_idx: int) -> List[Annotation]:
         """Fetch annotations on this pdf page and return them as a list."""
         outputs = []
-        if not page.cropBox[0] == page.cropBox[1] == 0:
+        if not (page.cropBox[0] == page.cropBox[1] == 0):
             raise CannotReadPdf(
                 f"cannot find positions of annotations, cropBox of page does not start with zeros (={page.cropBox})")
 
