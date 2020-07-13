@@ -50,6 +50,7 @@ class Scanner:
         """Convert the image into a pdf with added textual layer and store it to disc.
 
         Run tesseract OCR and add invisible textual content so that the pdf is searchable / clickable.
+
         :param im: input image
         :param pdf_path: path to output pdf
         :param pdf_width: widht of the pdf to be created (points)
