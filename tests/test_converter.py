@@ -6,6 +6,7 @@ from tempfile import mkstemp
 
 import numpy as np
 from PIL import Image
+from tests import pdf_path, first_page_150_dpi_path, second_page_150_dpi_path
 from tests.object_similarity import naive_image_similarity
 
 from pdf_tools import converter
@@ -14,14 +15,9 @@ from pdf_tools.rectangle import Rectangle
 
 class TestRectangle(unittest.TestCase):
 
-    here = Path(__file__).parent
-    sample_pdf_path = str(here / "data_git" / "example.pdf")
-    first_page_150_dpi = str(here / "data_git" / "example_150-1.png")
-    second_page_150_dpi = str(here / "data_git" / "example_150-2.png")
-
     def test_image_from_pdf_page(self):
-        im_1 = np.array(Image.open(self.first_page_150_dpi))
-        im_from_pdf = converter.image_from_pdf_page(self.sample_pdf_path, page_num=0, dpi=150, return_numpy=True)
+        im_1 = np.array(Image.open(str(first_page_150_dpi_path)))
+        im_from_pdf = converter.image_from_pdf_page(pdf_path, page_num=0, dpi=150, return_numpy=True)
 
         self.assertEqual(im_1.shape, im_from_pdf.shape)
         self.assertLess(np.mean(im_1 - im_from_pdf), 0.01)
@@ -47,8 +43,8 @@ class TestRectangle(unittest.TestCase):
         We take two images and create a pdf out of it.
         Then we convert this pdf to images and check that first page should be similar to the original first image.
         """
-        im1 = Image.open(self.first_page_150_dpi)
-        im2 = Image.open(self.second_page_150_dpi)
+        im1 = Image.open(str(first_page_150_dpi_path))
+        im2 = Image.open(str(second_page_150_dpi_path))
 
         _, temporary_pdf_path = mkstemp()
         converter.save_images_to_pdf([im1, im2], temporary_pdf_path)

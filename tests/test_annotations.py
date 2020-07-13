@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 from tempfile import mkstemp
 
+from tests import annotated_pdf_path
 from tests.object_similarity import annotations_are_similar
 
 from pdf_tools.annotation import Annotation, AnnotationExtractor
@@ -13,8 +14,6 @@ from pdf_tools.rectangle import Rectangle
 
 class TestAnnotation(unittest.TestCase):
 
-    here = Path(__file__).parent
-    annotated_pdf_path = str(here / "data_git" / "example_annotated.pdf")
     annotated_pdf = Pdf(annotated_pdf_path)
     extractor = AnnotationExtractor()
 
@@ -93,14 +92,16 @@ class TestAnnotation(unittest.TestCase):
 
         # each annotation is found in expected
         for annot in annotations:
-            self.assertTrue(
-                any(annotations_are_similar(annot, other)
-                    for other in self.expected_annotations))
+            with self.subTest(annotation=annot):
+                self.assertTrue(
+                    any(annotations_are_similar(annot, other)
+                        for other in self.expected_annotations))
         # each expected annotation is found in annotations
         for exp_annot in self.expected_annotations:
-            self.assertTrue(
-                any(annotations_are_similar(exp_annot, other)
-                    for other in annotations))
+            with self.subTest(expected_annotation=exp_annot):
+                self.assertTrue(
+                    any(annotations_are_similar(exp_annot, other)
+                        for other in annotations))
 
     def test_dump_annotations_to_file(self):
         """Dump annotations to file, load them from file, and compare that all is consistent."""
@@ -112,15 +113,16 @@ class TestAnnotation(unittest.TestCase):
 
         for i, annot in enumerate(annots_from_file):
             # check that i'th annotation on page page_idx is the same in annotations and in annots_from_file
-            self.assertTrue(
-                annotations_are_similar(
-                    Annotation(
-                        page=annot["page"],
-                        type=annot["type"],
-                        box=Rectangle.from_dict(annot["box"]),
-                        text_content=annot["text_content"],
-                        who_annotated=annot["who_annotated"],
-                        label=annot["label"]),
-                    annotations[i]))
+            with self.subTest(annotation=annot):
+                self.assertTrue(
+                    annotations_are_similar(
+                        Annotation(
+                            page=annot["page"],
+                            type=annot["type"],
+                            box=Rectangle.from_dict(annot["box"]),
+                            text_content=annot["text_content"],
+                            who_annotated=annot["who_annotated"],
+                            label=annot["label"]),
+                        annotations[i]))
 
         os.remove(temp_json_file)

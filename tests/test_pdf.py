@@ -7,6 +7,7 @@ from tempfile import mkstemp
 import numpy as np
 from PIL import Image
 from lxml import html
+from tests import pdf_path, pdf_rotated_path, first_page_150_dpi_path
 from tests.object_similarity import naive_image_similarity
 
 from pdf_tools.ocr import Scanner
@@ -16,12 +17,11 @@ from pdf_tools.rectangle import Rectangle
 
 class TestPdf(unittest.TestCase):
 
-    here = Path(__file__).parent
-    pdf = Pdf(here / "data_git" / "example.pdf")
-    pdf_rotated = Pdf(here / "data_git" / "example_rotated.pdf")
+    pdf = Pdf(pdf_path)
+    pdf_rotated = Pdf(pdf_rotated_path)
 
     def test_basic_attributes(self):
-        self.assertEqual(self.pdf.pdf_path, self.here / "data_git" / "example.pdf")
+        self.assertEqual(self.pdf.pdf_path, pdf_path)
         self.assertEqual(self.pdf.name, "example.pdf")
         self.assertEqual(self.pdf.number_of_pages, 2)
 
@@ -58,7 +58,7 @@ class TestPdf(unittest.TestCase):
         self.assertGreater(
             naive_image_similarity(
                 np.array(im_1),
-                np.array(Image.open(str(self.here / "data_git" / "example_150-1.png")))),
+                np.array(Image.open(str(first_page_150_dpi_path)))),
             0.98
         )
 

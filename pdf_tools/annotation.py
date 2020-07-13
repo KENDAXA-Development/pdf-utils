@@ -69,7 +69,11 @@ class AnnotationExtractor:
 
     @staticmethod
     def get_annot_from_pdf(pdf: Pdf) -> List[Annotation]:
-        """Fetch annotations from annotated pdf and outputs as a list of annotation objects."""
+        """Fetch annotations from annotated pdf and outputs as a list of annotation objects.
+
+        :param pdf: Pdf object, representing a pdf file
+        :return: List of Annotation objects, as found in the pdf document
+        """
         outputs = []
         for idx in range(pdf.number_of_pages):
             outputs += AnnotationExtractor._parse_annot_pdf_page(pdf.pdf_reader.getPage(idx), idx)

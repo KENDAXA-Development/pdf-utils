@@ -1,11 +1,11 @@
 import os
 import re
 import unittest
-from pathlib import Path
 from tempfile import mkstemp
 
 import numpy as np
 from PIL import Image
+from tests import pdf_path, annotated_pdf_path, first_page_150_dpi_path
 from tests.object_similarity import annotations_are_similar, naive_image_similarity
 
 from pdf_tools.annotated_pdf import AnnotatedPdf
@@ -15,10 +15,6 @@ from pdf_tools.pdf_handler import Pdf
 
 class TestAnnotatedPdf(unittest.TestCase):
 
-    here = Path(__file__).parent
-    pdf_path = str(here / "data_git" / "example.pdf")
-
-    annotated_pdf_path = str(here / "data_git" / "example_annotated.pdf")
     annotated_pdf = AnnotatedPdf(annotated_pdf_path)
     extracted_annots = AnnotationExtractor.get_annot_from_pdf(annotated_pdf)
 
@@ -63,7 +59,7 @@ class TestAnnotatedPdf(unittest.TestCase):
 
     def test_pdf_with_no_anno(self):
         """Check that annotation lists are empty for a pdf with no annotations."""
-        pdf_no_annot = AnnotatedPdf(self.pdf_path)
+        pdf_no_annot = AnnotatedPdf(pdf_path)
         self.assertListEqual(pdf_no_annot.raw_annotations, [])
         self.assertListEqual(pdf_no_annot.enriched_annotations, [])
 
@@ -120,7 +116,7 @@ class TestAnnotatedPdf(unittest.TestCase):
 
         # first page should look similar than the reference page
         first_page_no_anno = pdf_no_annots.page_image(0, dpi=150)
-        first_im_ref = Image.open(str(self.here / "data_git" / "example_150-1.png"))
+        first_im_ref = Image.open(str(first_page_150_dpi_path))
         self.assertGreater(
             naive_image_similarity(
                 np.array(first_im_ref),
