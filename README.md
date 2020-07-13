@@ -21,4 +21,4 @@ We use Poppler mainly for extracting images and text from pdfs, and Tesseract is
 
 ## How to
 
-Some examples of usage are shown in the [notebook](".browse/notebook/Demo.ipynb").
+Some examples of usage are shown in the [notebook]("https://bitbucket.kendaya.net/projects/KXLAB/repos/pdf-tools/browse/notebook/Demo.ipynb").
