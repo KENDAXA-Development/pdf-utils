@@ -120,11 +120,11 @@ class AnnotationExtractor:
         if not isinstance(annots, list):
             # something is strange
             if not isinstance(annots, IndirectObject):
-                logging.error(f"cannot read annotations from {input}")
+                logging.warning(f"cannot read annotations from {input}")
                 return []
             annots = annots.getObject()  # now let's hope to get a list; in some cases this helps
             if not isinstance(annots, list):
-                logging.error(f"cannot read annotations from {input}")
+                logging.warning(f"cannot read annotations from {input}")
                 return []
         for ann in annots:
             current = ann.getObject()
