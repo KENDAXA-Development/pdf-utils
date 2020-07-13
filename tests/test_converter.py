@@ -15,6 +15,7 @@ from pdf_tools.rectangle import Rectangle
 class TestRectangle(unittest.TestCase):
 
     def test_image_from_pdf_page(self):
+        """Convert a pdf page to image."""
         im_1 = np.array(Image.open(str(first_page_150_dpi_path)))
         im_from_pdf = converter.image_from_pdf_page(pdf_path, page_num=0, dpi=150, return_numpy=True)
 
@@ -22,6 +23,10 @@ class TestRectangle(unittest.TestCase):
         self.assertLess(np.mean(im_1 - im_from_pdf), 0.01)
 
     def test_pdf_box_to_image_box(self):
+        """Transform bounding box from points to pixels.
+
+        If shape ratios do not match, an exception should be risen.
+        """
         pdf_box = Rectangle(10, 10, 20, 30)
         image_box_1 = Rectangle(100, 100, 200, 300)
 
@@ -63,6 +68,7 @@ class TestRectangle(unittest.TestCase):
         os.remove(temporary_pdf_path)
 
     def test_indices_of_words(self):
+        """Test conversion of a text-span into indices of words that are fully or partially within the span."""
         words = [
             "This", "is", "a", "medium-long", "sentence", "about", "the", "friendly-looking",
             "dog", "eating", "small", "children."]

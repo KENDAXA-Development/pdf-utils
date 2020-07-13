@@ -20,11 +20,13 @@ class TestPdf(unittest.TestCase):
     pdf_rotated = Pdf(pdf_rotated_path)
 
     def test_basic_attributes(self):
+        """Check correctness of path, name and number of pages."""
         self.assertEqual(self.pdf.pdf_path, pdf_path)
         self.assertEqual(self.pdf.name, "example.pdf")
         self.assertEqual(self.pdf.number_of_pages, 2)
 
     def test_width_height_rotation(self):
+        """Check width, height, and extracted page rotation."""
         w, h = self.pdf.get_width_height(0)
         wr, hr = self.pdf_rotated.get_width_height(0)
 
@@ -42,6 +44,7 @@ class TestPdf(unittest.TestCase):
         self.assertEqual(self.pdf_rotated.page_rotation(0), 90)
 
     def test_page_image(self):
+        """Check consistency of first-page image, reference image, and recovered image from rotated pdf."""
         im_1 = self.pdf.page_image(0)
         im_rot_1 = self.pdf_rotated.page_image(0)
 
@@ -111,6 +114,7 @@ class TestPdf(unittest.TestCase):
             ))
 
     def test_text_extraction_from_rotated_pdf(self):
+        """Check that bounding box of a word in pdf is where it should be."""
         root = self.pdf.text_with_bb
 
         # here we at least check the type
