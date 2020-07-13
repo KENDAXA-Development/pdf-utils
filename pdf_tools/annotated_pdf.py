@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 from collections import defaultdict
+from operator import itemgetter
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Union
 
@@ -21,23 +22,21 @@ from pdf_tools.pdf_handler import Pdf
 class AnnotatedPdf(Pdf):
     """Tools to process one annotated pdf."""
 
-    match_words_threshold = 0.4
-    match_words_minimal_threshold = 0.2
-    match_annotation_types = ("rectangle", )
+    _match_words_threshold = 0.4
+    _match_words_minimal_threshold = 0.2
+    _enrich_annotation_types = ("rectangle",)
 
     minimal_words_in_document = 10
 
     def __init__(self, pdf_path: Union[str, Path]) -> None:
         super().__init__(pdf_path)
-        self._raw_annotations = None
+        self._raw_annotations = AnnotationExtractor().get_annot_from_pdf(self)
         self._enriched_annotations = None
         self._flow_to_id = None
 
     @property
     def raw_annotations(self) -> List[Annotation]:
         """Extract annotations from pdf."""
-        if self._raw_annotations is None:
-            self._raw_annotations = AnnotationExtractor().get_annot_from_pdf(self)
         return self._raw_annotations
 
     @property
@@ -55,7 +54,7 @@ class AnnotatedPdf(Pdf):
         ]
         """
         if self._enriched_annotations is None:
-            self._enriched_annotations = self._match_annotations_with_words(self.raw_annotations)
+            self._enriched_annotations = self._match_annotations_with_words()
         return self._enriched_annotations
 
     def get_flows_with_annotations(self,
@@ -91,7 +90,7 @@ class AnnotatedPdf(Pdf):
         """
         # check if digital content exists
         if len(self.text_with_bb.findall(".//word")) < self.minimal_words_in_document:
-            logging.error("Cannot extract digital content from pdf (no words there).")
+            logging.warning("Cannot extract digital content from pdf (no words there).")
             return {}
 
         # enumerate flows
@@ -110,7 +109,8 @@ class AnnotatedPdf(Pdf):
             # neighborhood of some words is a dict with keys 'flow', 'words', 'indices'
             neighborhood = self._get_neighborhood_of_words(words)
             if neighborhood is None:
-                logging.error(f"cannot get annotated flows for {self.pdf_path}")
+                logging.warning(f"cannot get ancestor flow for the words {[w.text for w in words]} "
+                                f"(file {self.pdf_path}, skipping")
                 continue
             # here we find in which flow the annotation is
             current_flow_id = flows_to_id[neighborhood["flow"]]
@@ -124,6 +124,50 @@ class AnnotatedPdf(Pdf):
             annotated_flows[current_flow_id]["annotated_indices"][annot_description] += neighborhood["indices"]
 
         return dict(sorted(annotated_flows.items()))
+
+    def _match_annotations_with_words(self) -> List[Dict]:
+        """Extract 'rectangle' annotations with matched words.
+
+        This is the backend of the `enriched_annotations` method.
+        """
+        pages = self.get_pages()
+        matched_annotations = []
+        for annot in self.raw_annotations:
+            if annot.type in self._enrich_annotation_types:
+                matched_annotations.append({
+                    "annotation": annot,
+                    "words": self._find_words_related_to_one_annotation(annot, pages[annot.page])})
+        return matched_annotations
+
+    def _find_words_related_to_one_annotation(self,
+                                              annotation: Annotation,
+                                              words_in_page: List[html.HtmlElement]) -> List[Dict]:
+        """Find words with high overlap with bounding box of a given annotation.
+
+        :param annotation: one Annotation object
+        :param words_in_page: list of html elements representing words on a pdf page
+        :return: list of dictionaries of type
+            {
+                "word": html element representing the word,
+                "score": proportion of the word box intersecting the annotation box
+            }
+        """
+        words = self._get_scored_words(words_in_page, annotation, self._match_words_threshold)
+        if words:
+            return words
+
+        # we didn't succeed, let's refine our search
+        words = self._get_scored_words(words_in_page, annotation, self._match_words_minimal_threshold)
+        if words:
+            best_word = max(words, key=itemgetter("score"))  # let's take the largest one
+            logging.warning(
+                f"Only weak annotation-word match. We are returning the word with largest overlap "
+                f"('{best_word['word']}', score = {best_word['score']})")
+            return [best_word]
+
+        # we still didn't succeed
+        logging.warning(f"cannot match annotation {annotation} with any word-element (file {self.pdf_path.stem})")
+        return []
 
     def _initialize_flows(self) -> Dict[int, Dict]:
         """Create a dictionary from flow_id to information about words in this flow."""
@@ -168,57 +212,6 @@ class AnnotatedPdf(Pdf):
                     "score": score})
         return scored_words
 
-    def _find_words_related_to_one_annotation(self,
-                                              annotation: Annotation,
-                                              words_in_page: List[html.HtmlElement]) -> List[Dict]:
-        """Find words with high overlap with bounding box of a given annotation.
-
-        :param annotation: one Annotation object
-        :param words_in_page: list of html elements representing words on a pdf page
-        :return: list of dictionaries of type
-            {
-                "word": html element representing the word,
-                "score": proportion of the word box intersecting the annotation box
-            }
-        """
-        words = self._get_scored_words(words_in_page, annotation, self.match_words_threshold)
-        if words:
-            return words
-
-        # we didn't succeed, let's refine our search
-        words = self._get_scored_words(words_in_page, annotation, self.match_words_minimal_threshold)
-        if words:
-            best_word = max(words, key=lambda item: item["score"])  # let's take the largest one
-            logging.warning(
-                f"Only weak annotation-word match. We are returning the word with largest overlap "
-                f"('{best_word['word']}', score = {best_word['score']})")
-            return [best_word]
-
-        # we still didn't succeed
-        logging.error(f"cannot match annotation {annotation} with any word-element (file {self.pdf_path.stem})")
-        return []
-
-    def _match_annotations_with_words(self,
-                                      raw_annotations: List[Annotation]) -> List[Dict]:
-        """Match boxes from annotations and bounding boxes of words.
-
-        :param raw_annotations: annotations as extracted by AnnotationExtractor
-        :return: dictionary a list of type
-        [{
-            "annotation": Annotation,
-            "words": [{"word": word_as_html_element, "score": overlap_score}, ...]}]
-        The score is always the intersection over union from annotation box and the bounding box of word.
-        """
-        pages = self.get_pages()
-
-        matched_annotations = []
-        for annot in raw_annotations:
-            if annot.type in self.match_annotation_types:
-                matched_annotations.append({
-                    "annotation": annot,
-                    "words": self._find_words_related_to_one_annotation(annot, pages[annot.page])})
-        return matched_annotations
-
     def _get_neighborhood_of_words(self, words: List[html.HtmlElement]) -> Optional[Dict]:
         """For a list of given words, compute the corresponding section and indices of these words within section.
 
@@ -231,14 +224,13 @@ class AnnotatedPdf(Pdf):
            'words': list of words in the flow (as strings)
            'indices': list of indices of the words that are within annotated_words.
         """
-        if not words:
-            logging.error(f"no annotated_words, cannot create neighborhood ({self.pdf_path})")
-            return None
+        assert words,  f"no annotated_words, cannot create neighborhood ({self.pdf_path})"
+
         # grand-grand-parents of a word is a flow
         parents = [w.getparent().getparent().getparent() for w in words]
         if not len(set(parents)) == 1:
-            logging.error(f"words in the annotation are in different flows, cannot fetch neighborhood "
-                          f"(file {self.pdf_path})")
+            logging.warning(f"words in the annotation are in different flows, cannot fetch neighborhood "
+                            f"(file {self.pdf_path}) -- skipping")
             return None
 
         ancestor = parents[0]
@@ -282,7 +274,7 @@ class PdfFileWriterX(PdfFileWriter):
     The fix is copy-paste from https://github.com/mstamy2/PyPDF2/issues/219#issuecomment-131252808.
     """
 
-    def cloneDocumentFromReader(self, reader: PdfFileReader, *args):
+    def cloneDocumentFromReader(self, reader: PdfFileReader, *args) -> None:
         """Create a copy (clone) of a document from a PDF file reader.
 
         :param reader: PDF file reader instance from which the clone

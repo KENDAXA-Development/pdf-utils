@@ -16,15 +16,21 @@ from pdf_tools.pdf_handler import Pdf
 class TestAnnotatedPdf(unittest.TestCase):
 
     here = Path(__file__).parent
-
     pdf_path = str(here / "data_git" / "example.pdf")
 
     annotated_pdf_path = str(here / "data_git" / "example_annotated.pdf")
     annotated_pdf = AnnotatedPdf(annotated_pdf_path)
-
     extracted_annots = AnnotationExtractor.get_annot_from_pdf(annotated_pdf)
 
+    risk_pattern = re.compile(r"Being\s+killed\s+at\s+train\s+station")
+    deductible_pattern = re.compile(r"1\s?%")
+    currency_pattern = re.compile(r"Euro")
+
     def test_raw_annotations(self):
+        """Check that the raw_annotations extracted from AnnotatedPdf coincides with what AnnotationExtractor returns.
+
+        Functionality of the AnnotationExtractor itself is tested in the test_ocr module.
+        """
         raw_annotations = self.annotated_pdf.raw_annotations
 
         self.assertEqual(len(raw_annotations), len(self.extracted_annots))
@@ -33,6 +39,7 @@ class TestAnnotatedPdf(unittest.TestCase):
             self.assertTrue(annotations_are_similar(raw_annotations[i], self.extracted_annots[i]))
 
     def test_enriched_annotations(self):
+        """Check that enriched annotation for our example pdf coincide with expected results."""
         enriched = self.annotated_pdf.enriched_annotations
 
         # check that only rectangle-types are here
@@ -55,6 +62,7 @@ class TestAnnotatedPdf(unittest.TestCase):
                 0.01)
 
     def test_pdf_with_no_anno(self):
+        """Check that annotation lists are empty for a pdf with no annotations."""
         pdf_no_annot = AnnotatedPdf(self.pdf_path)
         self.assertListEqual(pdf_no_annot.raw_annotations, [])
         self.assertListEqual(pdf_no_annot.enriched_annotations, [])
@@ -64,46 +72,45 @@ class TestAnnotatedPdf(unittest.TestCase):
 
         The annotated words with annotation's text_content equal to "risk" should be words
         that approximately look like "Being killed at train station".
-
-        If we cann the get_flows_with_annotations method with a non-default parameter transform_anno_text_description,
-        then the annotation's text_content is normalized first; here we test a normalization that keeps first char only.
         """
-        risk_pattern = re.compile(r"Being\s+killed\s+at\s+train\s+station")
-        deductible_pattern = re.compile(r"1\s?%")
-        currency_pattern = re.compile(r"Euro")
-
         annotated_flows = self.annotated_pdf.get_flows_with_annotations()
-        # here we convert each annotation's text_content into the first lower-cased character only
-        annotated_flows_with_one_char_annotations = self.annotated_pdf.get_flows_with_annotations(
-            transform_anno_text_description=lambda text: text.lower()[0]
-        )
-
         for flow_id in annotated_flows:
             current_flow = annotated_flows[flow_id]
-            current_flow_one_char_annot = annotated_flows_with_one_char_annotations[flow_id]
-
             for k in current_flow["annotated_indices"]:
                 annotated_text = ' '.join(current_flow["words"][i] for i in current_flow["annotated_indices"][k])
                 if k == "risk":
-                    self.assertTrue(risk_pattern, annotated_text)
-                if k == "deductible in %":
-                    self.assertTrue(deductible_pattern, annotated_text)
-                if k == "currency":
-                    self.assertTrue(currency_pattern, annotated_text)
+                    self.assertTrue(self.risk_pattern.search(annotated_text))
+                elif k == "deductible in %":
+                    self.assertTrue(self.deductible_pattern.search(annotated_text))
+                elif k == "currency":
+                    self.assertTrue(self.currency_pattern.search(annotated_text))
 
-            for k in current_flow_one_char_annot["annotated_indices"]:
+    def test_annotated_flows_with_one_char_normalization(self):
+        """Test annotated flows with a nontrivial transformation of the annotation's text_content.
+
+        Here we convert each annotation's text_content into it's lower-cased first character.
+        So "Risk" becomes "r" only.
+        """
+        annotated_flows_with_one_char_annotations = self.annotated_pdf.get_flows_with_annotations(
+            transform_anno_text_description=lambda text: text.lower()[0])
+
+        for flow_id in annotated_flows_with_one_char_annotations:
+            current_flow = annotated_flows_with_one_char_annotations[flow_id]
+
+            for k in current_flow["annotated_indices"]:
                 annotated_text = ' '.join(current_flow["words"][i] for i in current_flow["annotated_indices"][k])
                 # here we expected one-character keys
                 self.assertTrue(len(k) == 1)
                 # 'r' stands for 'risk', etc
                 if k == "r":
-                    self.assertTrue(risk_pattern, annotated_text)
-                if k == "d":
-                    self.assertTrue(deductible_pattern, annotated_text)
-                if k == "c":
-                    self.assertTrue(currency_pattern, annotated_text)
+                    self.assertTrue(self.risk_pattern.search(annotated_text))
+                elif k == "d":
+                    self.assertTrue(self.deductible_pattern.search(annotated_text))
+                elif k == "c":
+                    self.assertTrue(self.currency_pattern.search(annotated_text))
 
     def test_annotation_removal(self):
+        """Remove all annotation and test consistency."""
         temp_pdf_file = mkstemp()[1]
         self.annotated_pdf.remove_annotations_and_save(temp_pdf_file)
         pdf_no_annots = AnnotatedPdf(temp_pdf_file)
