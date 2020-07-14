@@ -5,13 +5,15 @@ import json
 import logging
 import os
 from collections import defaultdict
-from typing import Any, List, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from PyPDF2.generic import ByteStringObject, IndirectObject
 from PyPDF2.pdf import PageObject
 
-from pdf_tools.pdf_handler import Pdf, CannotReadPdf
+from pdf_tools.pdf_handler import CannotReadPdf, Pdf
 from pdf_tools.rectangle import Rectangle
+
+logger = logging.getLogger(__name__)
 
 
 # change this if you want to include other annotations types from pdfs
@@ -24,7 +26,7 @@ class Annotation:
     def __init__(
             self,
             page: int,
-            type: str,
+            type: str,  # noqa A102
             box: Rectangle,
             text_content: Optional[str] = None,
             who_annotated: Optional[str] = None,
@@ -48,6 +50,7 @@ class Annotation:
 
     @property
     def as_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
         return {
             "page": self.page,
             "type": self.type,
@@ -68,27 +71,23 @@ class AnnotationExtractor:
     """
 
     @staticmethod
-    def get_annot_from_pdf(pdf: Pdf) -> Dict[int, List[Annotation]]:
-        """Fetch annotations from annotated pdf and outputs as a dictionary.
+    def get_annot_from_pdf(pdf: Pdf) -> List[Annotation]:
+        """Fetch annotations from annotated pdf and outputs as a list of annotation objects.
 
-        :param pdf: Pdf object (object of kx_signatures.pdf.Pdf class)
-        return: dictionary {page_num : [list_of_annotations_on_that_page]}
+        :param pdf: Pdf object, representing a pdf file
+        :return: List of Annotation objects, as found in the pdf document
         """
         outputs = []
         for idx in range(pdf.number_of_pages):
             outputs += AnnotationExtractor._parse_annot_pdf_page(pdf.pdf_reader.getPage(idx), idx)
-        return AnnotationExtractor._group_by_pages(outputs)
+        return outputs
 
     @staticmethod
-    def dump_annotations_to_file(annotations: Dict[int, List[Annotation]], output_path: str) -> None:
+    def dump_annotations_to_file(annotations: List[Annotation], output_path: str) -> None:
         """Json serialization of a list of Annotations."""
         assert os.path.isdir(os.path.dirname(output_path)), f"folder {os.path.dirname(output_path)} doesn't exist."
-
-        js = {}
-        for page in annotations:
-            js[page] = [annot.as_dict for annot in annotations[page]]
         with open(output_path, "w") as f:
-            json.dump(js, f)
+            json.dump([annot.as_dict for annot in annotations], f)
 
     @staticmethod
     def _create_annotations_bounding_box(box_as_list: List,
@@ -124,11 +123,11 @@ class AnnotationExtractor:
         if not isinstance(annots, list):
             # something is strange
             if not isinstance(annots, IndirectObject):
-                logging.error(f"cannot read annotations from {input}")
+                logger.warning(f"cannot read annotations from {input}")
                 return []
             annots = annots.getObject()  # now let's hope to get a list; in some cases this helps
             if not isinstance(annots, list):
-                logging.error(f"cannot read annotations from {input}")
+                logger.warning(f"cannot read annotations from {input}")
                 return []
         for ann in annots:
             current = ann.getObject()
@@ -147,7 +146,7 @@ class AnnotationExtractor:
                         text_content=text_content,
                         who_annotated=who_annotated))
                 else:
-                    logging.warning(f"foreign annotation found (type {annot_type}, src {input})")
+                    logger.warning(f"foreign annotation found (type {annot_type}, src {input})")
         return outputs
 
     @staticmethod

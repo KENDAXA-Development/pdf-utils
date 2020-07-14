@@ -1,6 +1,6 @@
 """Various basic tools for conversions between pdf's, text, images and words and word indices."""
 import subprocess
-from typing import Union, List, Tuple, Dict
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
 import pdf2image

@@ -1,18 +1,16 @@
 import os
 import re
 import unittest
-from pathlib import Path
 from tempfile import mkstemp
 
 from pdf_tools.ocr import Scanner
 from pdf_tools.pdf_handler import Pdf
+from tests import PDF_PATH
 
 
 class TestScanner(unittest.TestCase):
 
-    here = Path(__file__).parent
-    sample_pdf_path = str(here / "data_git" / "example.pdf")
-    example_pdf = Pdf(sample_pdf_path)
+    example_pdf = Pdf(PDF_PATH)
     first_page_large = example_pdf.page_image(page_idx=0, dpi=300)
     ocr_data = None
 

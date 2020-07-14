@@ -1,32 +1,32 @@
 import os
 import re
 import unittest
-from pathlib import Path
 from tempfile import mkstemp
 
 import numpy as np
 from PIL import Image
-from tests.object_similarity import naive_image_similarity
 
 from pdf_tools import converter
 from pdf_tools.rectangle import Rectangle
+from tests import FIRST_PDF_PAGE_PATH, PDF_PATH, SECOND_PDF_PAGE_PATH
+from tests.object_similarity import naive_image_similarity
 
 
 class TestRectangle(unittest.TestCase):
 
-    here = Path(__file__).parent
-    sample_pdf_path = str(here / "data_git" / "example.pdf")
-    first_page_150_dpi = str(here / "data_git" / "example_150-1.png")
-    second_page_150_dpi = str(here / "data_git" / "example_150-2.png")
-
     def test_image_from_pdf_page(self):
-        im_1 = np.array(Image.open(self.first_page_150_dpi))
-        im_from_pdf = converter.image_from_pdf_page(self.sample_pdf_path, page_num=0, dpi=150, return_numpy=True)
+        """Convert a pdf page to image."""
+        im_1 = np.array(Image.open(str(FIRST_PDF_PAGE_PATH)))
+        im_from_pdf = converter.image_from_pdf_page(PDF_PATH, page_num=0, dpi=150, return_numpy=True)
 
         self.assertEqual(im_1.shape, im_from_pdf.shape)
         self.assertLess(np.mean(im_1 - im_from_pdf), 0.01)
 
     def test_pdf_box_to_image_box(self):
+        """Transform bounding box from points to pixels.
+
+        If shape ratios do not match, an exception should be risen.
+        """
         pdf_box = Rectangle(10, 10, 20, 30)
         image_box_1 = Rectangle(100, 100, 200, 300)
 
@@ -47,8 +47,8 @@ class TestRectangle(unittest.TestCase):
         We take two images and create a pdf out of it.
         Then we convert this pdf to images and check that first page should be similar to the original first image.
         """
-        im1 = Image.open(self.first_page_150_dpi)
-        im2 = Image.open(self.second_page_150_dpi)
+        im1 = Image.open(str(FIRST_PDF_PAGE_PATH))
+        im2 = Image.open(str(SECOND_PDF_PAGE_PATH))
 
         _, temporary_pdf_path = mkstemp()
         converter.save_images_to_pdf([im1, im2], temporary_pdf_path)
@@ -68,6 +68,7 @@ class TestRectangle(unittest.TestCase):
         os.remove(temporary_pdf_path)
 
     def test_indices_of_words(self):
+        """Test conversion of a text-span into indices of words that are fully or partially within the span."""
         words = [
             "This", "is", "a", "medium-long", "sentence", "about", "the", "friendly-looking",
             "dog", "eating", "small", "children."]

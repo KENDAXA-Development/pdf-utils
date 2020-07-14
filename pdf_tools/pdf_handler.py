@@ -8,7 +8,7 @@ import shutil
 import subprocess
 from pathlib import Path
 from tempfile import mkdtemp
-from typing import Iterable, Tuple, List, Union, Dict, Optional
+from typing import Dict, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 from PIL import Image
@@ -18,6 +18,8 @@ from lxml import html
 from pdf_tools.converter import image_from_pdf_page, merge_pdfs
 from pdf_tools.ocr import Scanner
 from pdf_tools.rectangle import Rectangle
+
+logger = logging.getLogger(__name__)
 
 
 class CannotReadPdf(Exception):
@@ -29,7 +31,7 @@ class Pdf:
 
     parser = html.HTMLParser(encoding="utf-8")
 
-    def __init__(self, pdf_path: str) -> None:
+    def __init__(self, pdf_path: Union[str, Path]) -> None:
         """Define pdf path, pdf reader, initialize images."""
         self.pdf_path = Path(pdf_path)
         self.pdf_file = open(self.pdf_path, 'rb')
@@ -51,10 +53,12 @@ class Pdf:
 
     @property
     def name(self) -> str:
+        """Return pdf's file name."""
         return self.pdf_path.name
 
     @property
     def number_of_pages(self) -> int:
+        """Get number of pages in the pdf."""
         return self.pdf_reader.getNumPages()
 
     def get_width_height(self, page_idx: int = 0) -> Tuple[int, int]:
@@ -74,7 +78,7 @@ class Pdf:
             pdf_width, pdf_height = pdf_height, pdf_width
 
         if pdf_width < 0 or pdf_height < 0:
-            logging.warning(f"negative page size detected, w={pdf_width}, h={pdf_height}, ignoring sign")
+            logger.warning(f"negative page size detected, w={pdf_width}, h={pdf_height}, ignoring sign")
 
         return abs(pdf_width), abs(pdf_height)
 
@@ -198,7 +202,7 @@ class Pdf:
             img_for_ocr = img
             if higher_dpi_for_scan is not None:
                 if higher_dpi_for_scan < images_dpi:
-                    logging.warning("lower resolution is used for OCR than for insertion into the pdf; ocr can be bad")
+                    logger.warning("lower resolution is used for OCR than for insertion into the pdf; ocr can be bad")
                 img_for_ocr = self.page_image(page_idx, dpi=higher_dpi_for_scan, recompute=True)
             ocr_text = Scanner.ocr_one_image(img_for_ocr, tesseract_lang, tesseract_conf)
             Scanner.image_to_one_page_ocred_pdf(

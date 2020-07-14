@@ -1,31 +1,32 @@
 import os
 import re
 import unittest
-from pathlib import Path
 from tempfile import mkstemp
 
 import numpy as np
 from PIL import Image
 from lxml import html
-from tests.object_similarity import naive_image_similarity
 
 from pdf_tools.ocr import Scanner
 from pdf_tools.pdf_handler import Pdf
 from pdf_tools.rectangle import Rectangle
+from tests import FIRST_PDF_PAGE_PATH, PDF_PATH, PDF_ROTATED_PATH
+from tests.object_similarity import naive_image_similarity
 
 
 class TestPdf(unittest.TestCase):
 
-    here = Path(__file__).parent
-    pdf = Pdf(here / "data_git" / "example.pdf")
-    pdf_rotated = Pdf(here / "data_git" / "example_rotated.pdf")
+    pdf = Pdf(PDF_PATH)
+    pdf_rotated = Pdf(PDF_ROTATED_PATH)
 
     def test_basic_attributes(self):
-        self.assertEqual(self.pdf.pdf_path, self.here / "data_git" / "example.pdf")
+        """Check correctness of path, name and number of pages."""
+        self.assertEqual(self.pdf.pdf_path, PDF_PATH)
         self.assertEqual(self.pdf.name, "example.pdf")
         self.assertEqual(self.pdf.number_of_pages, 2)
 
     def test_width_height_rotation(self):
+        """Check width, height, and extracted page rotation."""
         w, h = self.pdf.get_width_height(0)
         wr, hr = self.pdf_rotated.get_width_height(0)
 
@@ -43,6 +44,7 @@ class TestPdf(unittest.TestCase):
         self.assertEqual(self.pdf_rotated.page_rotation(0), 90)
 
     def test_page_image(self):
+        """Check consistency of first-page image, reference image, and recovered image from rotated pdf."""
         im_1 = self.pdf.page_image(0)
         im_rot_1 = self.pdf_rotated.page_image(0)
 
@@ -58,7 +60,7 @@ class TestPdf(unittest.TestCase):
         self.assertGreater(
             naive_image_similarity(
                 np.array(im_1),
-                np.array(Image.open(str(self.here / "data_git" / "example_150-1.png")))),
+                np.array(Image.open(str(FIRST_PDF_PAGE_PATH)))),
             0.98
         )
 
@@ -112,6 +114,7 @@ class TestPdf(unittest.TestCase):
             ))
 
     def test_text_extraction_from_rotated_pdf(self):
+        """Check that bounding box of a word in pdf is where it should be."""
         root = self.pdf.text_with_bb
 
         # here we at least check the type

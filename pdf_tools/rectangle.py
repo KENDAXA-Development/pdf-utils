@@ -7,9 +7,11 @@ Main methods support various bounding-boxes operations such as
 from __future__ import annotations
 
 import logging
-from typing import Dict, Optional, List
+from typing import Dict, List, Optional
 
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 
 class Rectangle:
@@ -29,28 +31,33 @@ class Rectangle:
         self.x_max = dtype(x_max)
         self.y_max = dtype(y_max)
         if (self.x_min > self.x_max) or (self.y_min > self.y_max):
-            logging.warning(f"rectangle lower bound is larger than upper bound (x: {x_min, x_max}, y: {y_min, y_max})")
+            logger.warning(f"rectangle lower bound is larger than upper bound (x: {x_min, x_max}, y: {y_min, y_max})")
 
     @property
     def width(self):
+        """Get width of the rectangle."""
         return self.x_max - self.x_min
 
     @property
     def height(self):
+        """Get height of the rectangle."""
         return self.y_max - self.y_min
 
     @property
     def area(self):
+        """Get area of the rectangle."""
         return self.width * self.height
 
     @property
     def center(self) -> tuple:
+        """Get rectangle's center as a pair (x,y)."""
         x = (self.x_max + self.x_min) / 2
         y = (self.y_max + self.y_min) / 2
         return x, y
 
     @property
     def as_dict(self):
+        """Convert to dict."""
         return {
             "x_min": self.x_min,
             "y_min": self.y_min,
@@ -93,6 +100,7 @@ class Rectangle:
         return Rectangle(x_min=0, y_min=0, x_max=width, y_max=height, dtype=int)
 
     def contains_other(self, other: Rectangle) -> bool:
+        """Check if other rectangle is a sub-rectangle of the current one."""
         return other.x_min >= self.x_min and other.x_max <= self.x_max and (
             other.y_min >= self.y_min and other.y_max <= self.y_max)
 
@@ -106,6 +114,7 @@ class Rectangle:
         )
 
     def to_int(self) -> Rectangle:
+        """Create a new rectangle with all coordinats rounded to integers."""
         return Rectangle(**self.as_dict, dtype=int)
 
     def relative_to_size(self, width, height) -> Rectangle:
