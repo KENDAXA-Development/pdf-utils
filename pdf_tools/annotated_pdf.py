@@ -19,6 +19,9 @@ from pdf_tools.annotation import Annotation, AnnotationExtractor
 from pdf_tools.pdf_handler import Pdf
 
 
+logger = logging.getLogger(__name__)
+
+
 class AnnotatedPdf(Pdf):
     """Tools to process one annotated pdf."""
 
@@ -90,7 +93,7 @@ class AnnotatedPdf(Pdf):
         """
         # check if digital content exists
         if len(self.text_with_bb.findall(".//word")) < self.minimal_words_in_document:
-            logging.warning("Cannot extract digital content from pdf (no words there).")
+            logger.warning("Cannot extract digital content from pdf (no words there).")
             return {}
 
         # enumerate flows
@@ -101,7 +104,7 @@ class AnnotatedPdf(Pdf):
         # iterate over annotations whose types are within self.match_annotation_types
         for annot in self.enriched_annotations:
             if not annot["words"]:
-                logging.warning(f"annotation {annot} found with no words")
+                logger.warning(f"annotation {annot} found with no words")
                 continue
 
             # create a list of html-elements representing annotated words
@@ -109,14 +112,14 @@ class AnnotatedPdf(Pdf):
             # neighborhood of some words is a dict with keys 'flow', 'words', 'indices'
             neighborhood = self._get_neighborhood_of_words(words)
             if neighborhood is None:
-                logging.warning(f"cannot get ancestor flow for the words {[w.text for w in words]} "
-                                f"(file {self.pdf_path}, skipping")
+                logger.warning(f"cannot get ancestor flow for the words {[w.text for w in words]} "
+                               f"(file {self.pdf_path}, skipping")
                 continue
             # here we find in which flow the annotation is
             current_flow_id = flows_to_id[neighborhood["flow"]]
             annot_text_content = annot["annotation"].text_content
             if not annot_text_content:
-                logging.warning(f"rectangle annotation with empty text_content found, annot={annot['annotation']}")
+                logger.warning(f"rectangle annotation with empty text_content found, annot={annot['annotation']}")
                 continue
             # normalize annotation's text_content
             annot_description = transform_anno_text_description(annot_text_content)
@@ -160,13 +163,13 @@ class AnnotatedPdf(Pdf):
         words = self._get_scored_words(words_in_page, annotation, self._match_words_minimal_threshold)
         if words:
             best_word = max(words, key=itemgetter("score"))  # let's take the largest one
-            logging.warning(
+            logger.warning(
                 f"Only weak annotation-word match. We are returning the word with largest overlap "
                 f"('{best_word['word']}', score = {best_word['score']})")
             return [best_word]
 
         # we still didn't succeed
-        logging.warning(f"cannot match annotation {annotation} with any word-element (file {self.pdf_path.stem})")
+        logger.warning(f"cannot match annotation {annotation} with any word-element (file {self.pdf_path.stem})")
         return []
 
     def _initialize_flows(self) -> Dict[int, Dict]:
@@ -229,8 +232,8 @@ class AnnotatedPdf(Pdf):
         # grand-grand-parents of a word is a flow
         parents = [w.getparent().getparent().getparent() for w in words]
         if not len(set(parents)) == 1:
-            logging.warning(f"words in the annotation are in different flows, cannot fetch neighborhood "
-                            f"(file {self.pdf_path}) -- skipping")
+            logger.warning(f"words in the annotation are in different flows, cannot fetch neighborhood "
+                           f"(file {self.pdf_path}) -- skipping")
             return None
 
         ancestor = parents[0]
@@ -242,7 +245,7 @@ class AnnotatedPdf(Pdf):
 
         # checks if annotated words follow subsequently
         if not annotated_indices == list(range(min(annotated_indices), max(annotated_indices) + 1)):
-            logging.warning(f"annotated words are not connected (file {self.pdf_path})")
+            logger.warning(f"annotated words are not connected (file {self.pdf_path})")
 
         return {
             "flow": ancestor,
@@ -264,7 +267,7 @@ class AnnotatedPdf(Pdf):
         """Get rid of annotations and store to a new pdf file."""
         clean = self._clean_writer()
         with open(output_pdf_path, "wb") as f:
-            logging.info(f"creating a new pdf {output_pdf_path}")
+            logger.info(f"creating a new pdf {output_pdf_path}")
             clean.write(f)
 
 

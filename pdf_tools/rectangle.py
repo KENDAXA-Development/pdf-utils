@@ -12,6 +12,9 @@ from typing import Dict, Optional, List
 import numpy as np
 
 
+logger = logging.getLogger(__name__)
+
+
 class Rectangle:
     """
     Data class for storing bounding boxes.
@@ -29,7 +32,7 @@ class Rectangle:
         self.x_max = dtype(x_max)
         self.y_max = dtype(y_max)
         if (self.x_min > self.x_max) or (self.y_min > self.y_max):
-            logging.warning(f"rectangle lower bound is larger than upper bound (x: {x_min, x_max}, y: {y_min, y_max})")
+            logger.warning(f"rectangle lower bound is larger than upper bound (x: {x_min, x_max}, y: {y_min, y_max})")
 
     @property
     def width(self):

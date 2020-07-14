@@ -20,6 +20,9 @@ from pdf_tools.ocr import Scanner
 from pdf_tools.rectangle import Rectangle
 
 
+logger = logging.getLogger(__name__)
+
+
 class CannotReadPdf(Exception):
     """PyPDF2 cannot read the pdf."""
 
@@ -74,7 +77,7 @@ class Pdf:
             pdf_width, pdf_height = pdf_height, pdf_width
 
         if pdf_width < 0 or pdf_height < 0:
-            logging.warning(f"negative page size detected, w={pdf_width}, h={pdf_height}, ignoring sign")
+            logger.warning(f"negative page size detected, w={pdf_width}, h={pdf_height}, ignoring sign")
 
         return abs(pdf_width), abs(pdf_height)
 
@@ -198,7 +201,7 @@ class Pdf:
             img_for_ocr = img
             if higher_dpi_for_scan is not None:
                 if higher_dpi_for_scan < images_dpi:
-                    logging.warning("lower resolution is used for OCR than for insertion into the pdf; ocr can be bad")
+                    logger.warning("lower resolution is used for OCR than for insertion into the pdf; ocr can be bad")
                 img_for_ocr = self.page_image(page_idx, dpi=higher_dpi_for_scan, recompute=True)
             ocr_text = Scanner.ocr_one_image(img_for_ocr, tesseract_lang, tesseract_conf)
             Scanner.image_to_one_page_ocred_pdf(

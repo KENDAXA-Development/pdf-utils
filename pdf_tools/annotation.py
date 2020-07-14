@@ -14,6 +14,9 @@ from pdf_tools.pdf_handler import Pdf, CannotReadPdf
 from pdf_tools.rectangle import Rectangle
 
 
+logger = logging.getLogger(__name__)
+
+
 # change this if you want to include other annotations types from pdfs
 ADMISSIBLE_ANNOTATION_TYPES = {"rectangle", "oval", "ovál", "note"}
 
@@ -120,11 +123,11 @@ class AnnotationExtractor:
         if not isinstance(annots, list):
             # something is strange
             if not isinstance(annots, IndirectObject):
-                logging.warning(f"cannot read annotations from {input}")
+                logger.warning(f"cannot read annotations from {input}")
                 return []
             annots = annots.getObject()  # now let's hope to get a list; in some cases this helps
             if not isinstance(annots, list):
-                logging.warning(f"cannot read annotations from {input}")
+                logger.warning(f"cannot read annotations from {input}")
                 return []
         for ann in annots:
             current = ann.getObject()
@@ -143,7 +146,7 @@ class AnnotationExtractor:
                         text_content=text_content,
                         who_annotated=who_annotated))
                 else:
-                    logging.warning(f"foreign annotation found (type {annot_type}, src {input})")
+                    logger.warning(f"foreign annotation found (type {annot_type}, src {input})")
         return outputs
 
     @staticmethod
