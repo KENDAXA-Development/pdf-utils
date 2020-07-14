@@ -50,6 +50,7 @@ class Annotation:
 
     @property
     def as_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
         return {
             "page": self.page,
             "type": self.type,

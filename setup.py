@@ -5,11 +5,11 @@ from setuptools import setup
 PATH_HERE = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
-with open(path.join(PATH_HERE, 'README.md'), encoding='utf-8') as fp:
+with open(path.join(PATH_HERE, 'README.md')) as fp:
     long_description = fp.read()
 
 # Get the list of required packages
-with open(path.join(PATH_HERE, "requirements.txt"), encoding="utf-8") as fp:
+with open(path.join(PATH_HERE, "requirements.txt")) as fp:
     requirements = [req.rstrip() for req in fp.readlines() if "-r" not in req]
 
 

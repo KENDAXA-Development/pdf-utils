@@ -53,10 +53,12 @@ class Pdf:
 
     @property
     def name(self) -> str:
+        """Return pdf's file name."""
         return self.pdf_path.name
 
     @property
     def number_of_pages(self) -> int:
+        """Get number of pages in the pdf."""
         return self.pdf_reader.getNumPages()
 
     def get_width_height(self, page_idx: int = 0) -> Tuple[int, int]:
