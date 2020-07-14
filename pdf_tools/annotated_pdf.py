@@ -12,12 +12,11 @@ from pathlib import Path
 from typing import Callable, Dict, List, Optional, Union
 
 from PyPDF2 import PdfFileReader, PdfFileWriter
-from PyPDF2.generic import NameObject, IndirectObject, NumberObject
+from PyPDF2.generic import IndirectObject, NameObject, NumberObject
 from lxml import html
 
 from pdf_tools.annotation import Annotation, AnnotationExtractor
 from pdf_tools.pdf_handler import Pdf
-
 
 logger = logging.getLogger(__name__)
 

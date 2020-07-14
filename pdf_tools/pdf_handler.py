@@ -8,7 +8,7 @@ import shutil
 import subprocess
 from pathlib import Path
 from tempfile import mkdtemp
-from typing import Iterable, Tuple, List, Union, Dict, Optional
+from typing import Dict, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 from PIL import Image
@@ -18,7 +18,6 @@ from lxml import html
 from pdf_tools.converter import image_from_pdf_page, merge_pdfs
 from pdf_tools.ocr import Scanner
 from pdf_tools.rectangle import Rectangle
-
 
 logger = logging.getLogger(__name__)
 

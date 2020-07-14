@@ -10,7 +10,7 @@ from lxml import html
 from pdf_tools.ocr import Scanner
 from pdf_tools.pdf_handler import Pdf
 from pdf_tools.rectangle import Rectangle
-from tests import pdf_path, pdf_rotated_path, first_page_150_dpi_path
+from tests import first_page_150_dpi_path, pdf_path, pdf_rotated_path
 from tests.object_similarity import naive_image_similarity
 
 

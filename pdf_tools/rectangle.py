@@ -7,10 +7,9 @@ Main methods support various bounding-boxes operations such as
 from __future__ import annotations
 
 import logging
-from typing import Dict, Optional, List
+from typing import Dict, List, Optional
 
 import numpy as np
-
 
 logger = logging.getLogger(__name__)
 

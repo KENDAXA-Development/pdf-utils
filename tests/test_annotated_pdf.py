@@ -9,7 +9,7 @@ from PIL import Image
 from pdf_tools.annotated_pdf import AnnotatedPdf
 from pdf_tools.annotation import AnnotationExtractor
 from pdf_tools.pdf_handler import Pdf
-from tests import pdf_path, annotated_pdf_path, first_page_150_dpi_path
+from tests import annotated_pdf_path, first_page_150_dpi_path, pdf_path
 from tests.object_similarity import annotations_are_similar, naive_image_similarity
 
 
