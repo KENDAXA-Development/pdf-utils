@@ -9,13 +9,13 @@ from PIL import Image
 from pdf_tools.annotated_pdf import AnnotatedPdf
 from pdf_tools.annotation import AnnotationExtractor
 from pdf_tools.pdf_handler import Pdf
-from tests import annotated_pdf_path, first_page_150_dpi_path, pdf_path
+from tests import ANNOTATED_PDF_PATH, FIRST_PDF_PAGE_PATH, PDF_PATH
 from tests.object_similarity import annotations_are_similar, naive_image_similarity
 
 
 class TestAnnotatedPdf(unittest.TestCase):
 
-    annotated_pdf = AnnotatedPdf(annotated_pdf_path)
+    annotated_pdf = AnnotatedPdf(ANNOTATED_PDF_PATH)
     extracted_annots = AnnotationExtractor.get_annot_from_pdf(annotated_pdf)
 
     risk_pattern = re.compile(r"Being\s+killed\s+at\s+train\s+station")
@@ -59,7 +59,7 @@ class TestAnnotatedPdf(unittest.TestCase):
 
     def test_pdf_with_no_anno(self):
         """Check that annotation lists are empty for a pdf with no annotations."""
-        pdf_no_annot = AnnotatedPdf(pdf_path)
+        pdf_no_annot = AnnotatedPdf(PDF_PATH)
         self.assertListEqual(pdf_no_annot.raw_annotations, [])
         self.assertListEqual(pdf_no_annot.enriched_annotations, [])
 
@@ -116,7 +116,7 @@ class TestAnnotatedPdf(unittest.TestCase):
 
         # first page should look similar than the reference page
         first_page_no_anno = pdf_no_annots.page_image(0, dpi=150)
-        first_im_ref = Image.open(str(first_page_150_dpi_path))
+        first_im_ref = Image.open(str(FIRST_PDF_PAGE_PATH))
         self.assertGreater(
             naive_image_similarity(
                 np.array(first_im_ref),

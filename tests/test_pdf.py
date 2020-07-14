@@ -10,18 +10,18 @@ from lxml import html
 from pdf_tools.ocr import Scanner
 from pdf_tools.pdf_handler import Pdf
 from pdf_tools.rectangle import Rectangle
-from tests import first_page_150_dpi_path, pdf_path, pdf_rotated_path
+from tests import FIRST_PDF_PAGE_PATH, PDF_PATH, PDF_ROTATED_PATH
 from tests.object_similarity import naive_image_similarity
 
 
 class TestPdf(unittest.TestCase):
 
-    pdf = Pdf(pdf_path)
-    pdf_rotated = Pdf(pdf_rotated_path)
+    pdf = Pdf(PDF_PATH)
+    pdf_rotated = Pdf(PDF_ROTATED_PATH)
 
     def test_basic_attributes(self):
         """Check correctness of path, name and number of pages."""
-        self.assertEqual(self.pdf.pdf_path, pdf_path)
+        self.assertEqual(self.pdf.pdf_path, PDF_PATH)
         self.assertEqual(self.pdf.name, "example.pdf")
         self.assertEqual(self.pdf.number_of_pages, 2)
 
@@ -60,7 +60,7 @@ class TestPdf(unittest.TestCase):
         self.assertGreater(
             naive_image_similarity(
                 np.array(im_1),
-                np.array(Image.open(str(first_page_150_dpi_path)))),
+                np.array(Image.open(str(FIRST_PDF_PAGE_PATH)))),
             0.98
         )
 

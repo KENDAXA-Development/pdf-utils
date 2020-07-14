@@ -8,7 +8,7 @@ from PIL import Image
 
 from pdf_tools import converter
 from pdf_tools.rectangle import Rectangle
-from tests import first_page_150_dpi_path, pdf_path, second_page_150_dpi_path
+from tests import FIRST_PDF_PAGE_PATH, PDF_PATH, SECOND_PDF_PAGE_PATH
 from tests.object_similarity import naive_image_similarity
 
 
@@ -16,8 +16,8 @@ class TestRectangle(unittest.TestCase):
 
     def test_image_from_pdf_page(self):
         """Convert a pdf page to image."""
-        im_1 = np.array(Image.open(str(first_page_150_dpi_path)))
-        im_from_pdf = converter.image_from_pdf_page(pdf_path, page_num=0, dpi=150, return_numpy=True)
+        im_1 = np.array(Image.open(str(FIRST_PDF_PAGE_PATH)))
+        im_from_pdf = converter.image_from_pdf_page(PDF_PATH, page_num=0, dpi=150, return_numpy=True)
 
         self.assertEqual(im_1.shape, im_from_pdf.shape)
         self.assertLess(np.mean(im_1 - im_from_pdf), 0.01)
@@ -47,8 +47,8 @@ class TestRectangle(unittest.TestCase):
         We take two images and create a pdf out of it.
         Then we convert this pdf to images and check that first page should be similar to the original first image.
         """
-        im1 = Image.open(str(first_page_150_dpi_path))
-        im2 = Image.open(str(second_page_150_dpi_path))
+        im1 = Image.open(str(FIRST_PDF_PAGE_PATH))
+        im2 = Image.open(str(SECOND_PDF_PAGE_PATH))
 
         _, temporary_pdf_path = mkstemp()
         converter.save_images_to_pdf([im1, im2], temporary_pdf_path)

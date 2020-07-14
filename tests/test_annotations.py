@@ -6,13 +6,13 @@ from tempfile import mkstemp
 from pdf_tools.annotation import Annotation, AnnotationExtractor
 from pdf_tools.pdf_handler import Pdf
 from pdf_tools.rectangle import Rectangle
-from tests import annotated_pdf_path
+from tests import ANNOTATED_PDF_PATH
 from tests.object_similarity import annotations_are_similar
 
 
 class TestAnnotation(unittest.TestCase):
 
-    annotated_pdf = Pdf(annotated_pdf_path)
+    annotated_pdf = Pdf(ANNOTATED_PDF_PATH)
     extractor = AnnotationExtractor()
 
     expected_annotations = [
