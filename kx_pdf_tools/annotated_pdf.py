@@ -1,6 +1,6 @@
 """Tools to digitalize annotations from a pdf.
 
-While the pdf_tools.annotation.AnnotationExtractor fetches the raw annotations, here we match their bounding boxes
+While the kx_pdf_tools.annotation.AnnotationExtractor fetches the raw annotations, here we match their bounding boxes
 with actual words, and provide tools for seeing these words in context.
 """
 from __future__ import annotations
@@ -15,8 +15,8 @@ from PyPDF2 import PdfFileReader, PdfFileWriter
 from PyPDF2.generic import IndirectObject, NameObject, NumberObject
 from lxml import html
 
-from pdf_tools.annotation import Annotation, AnnotationExtractor
-from pdf_tools.pdf_handler import Pdf
+from kx_pdf_tools.annotation import Annotation, AnnotationExtractor
+from kx_pdf_tools.pdf_handler import Pdf
 
 logger = logging.getLogger(__name__)
 

@@ -6,7 +6,7 @@ import numpy as np
 import pdf2image
 from PIL import Image
 
-from pdf_tools.rectangle import Rectangle
+from kx_pdf_tools.rectangle import Rectangle
 
 
 class RotatedPdfException(Exception):
