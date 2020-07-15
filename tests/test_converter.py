@@ -6,8 +6,8 @@ from tempfile import mkstemp
 import numpy as np
 from PIL import Image
 
-from pdf_tools import converter
-from pdf_tools.rectangle import Rectangle
+from kx_pdf_tools import converter
+from kx_pdf_tools.rectangle import Rectangle
 from tests import FIRST_PDF_PAGE_PATH, PDF_PATH, SECOND_PDF_PAGE_PATH
 from tests.object_similarity import naive_image_similarity
 

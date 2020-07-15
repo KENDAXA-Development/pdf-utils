@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from pdf_tools.rectangle import Rectangle
+from kx_pdf_tools.rectangle import Rectangle
 
 
 class TestRectangle(unittest.TestCase):

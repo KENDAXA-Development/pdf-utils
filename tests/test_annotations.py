@@ -3,9 +3,9 @@ import os
 import unittest
 from tempfile import mkstemp
 
-from pdf_tools.annotation import Annotation, AnnotationExtractor
-from pdf_tools.pdf_handler import Pdf
-from pdf_tools.rectangle import Rectangle
+from kx_pdf_tools.annotation import Annotation, AnnotationExtractor
+from kx_pdf_tools.pdf_handler import Pdf
+from kx_pdf_tools.rectangle import Rectangle
 from tests import ANNOTATED_PDF_PATH
 from tests.object_similarity import annotations_are_similar
 

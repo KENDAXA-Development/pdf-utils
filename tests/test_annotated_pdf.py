@@ -6,9 +6,9 @@ from tempfile import mkstemp
 import numpy as np
 from PIL import Image
 
-from pdf_tools.annotated_pdf import AnnotatedPdf
-from pdf_tools.annotation import AnnotationExtractor
-from pdf_tools.pdf_handler import Pdf
+from kx_pdf_tools.annotated_pdf import AnnotatedPdf
+from kx_pdf_tools.annotation import AnnotationExtractor
+from kx_pdf_tools.pdf_handler import Pdf
 from tests import ANNOTATED_PDF_PATH, FIRST_PDF_PAGE_PATH, PDF_PATH
 from tests.object_similarity import annotations_are_similar, naive_image_similarity
 
