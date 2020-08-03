@@ -100,8 +100,8 @@ class AnnotatedPdf(Pdf):
             }.
         """
         # check if digital content exists
-        print(sum(len(v) for v in self.get_pages().values()))
-        if sum(len(v) for v in self.get_pages().values()) < self.minimal_words_in_document:
+        nr_words = sum(len(v) for v in self.get_pages().values())
+        if nr_words < self.minimal_words_in_document:
             logger.warning("Cannot extract digital content from pdf (no words there).")
             return {}
 
