@@ -125,15 +125,21 @@ class Pdf:
         """Return all images as a list."""
         return (self.page_image(page_idx) for page_idx in range(self.number_of_pages))
 
-    def _extract_text_from_pdf(self, pdftotext_layout_argument: Optional[str] = None) -> str:
+    def extract_text_from_pdf(self,
+                              pdftotext_layout_argument: Optional[str] = None,
+                              page_idx: Optional[int] = None) -> str:
         """Get textual pdf content. Wrapper of Poppler's pdftotext.
 
-        :param pdftotext_layout_argument: None, "-layout" or "-bbox-layout". Argument passed to the pdftotext
+        :param pdftotext_layout_argument: None, "-layout" or "rbbox-layout". Argument passed to the pdftotext
         :return: pdftotext result
         """
-        pdftotext_args = ["pdftotext", "-enc", "UTF-8"]
+        pdftotext_args = ["pdftotext"]
         if pdftotext_layout_argument is not None:
             pdftotext_args.append(pdftotext_layout_argument)
+
+        if page_idx is not None:
+            pdftotext_args.extend(["-f", str(page_idx + 1), "-l", str(page_idx + 1)])
+
         return subprocess.check_output(
             pdftotext_args + [str(self.pdf_path), "-"], universal_newlines=True)
 
@@ -141,30 +147,26 @@ class Pdf:
     def simple_text(self) -> str:
         """Use `pdftotext` to extract textual content."""
         if self._simple_text is None:
-            self._simple_text = self._extract_text_from_pdf()
+            self._simple_text = self.extract_text_from_pdf()
         return self._simple_text
 
     @property
     def layout_text(self) -> str:
         """Use `pdftotext -layout` to extract textual content."""
         if self._layout_text is None:
-            self._layout_text = self._extract_text_from_pdf("-layout")
+            self._layout_text = self.extract_text_from_pdf("-layout")
         return self._layout_text
 
-    @property
-    def text_with_bb(self) -> html.HtmlElement:
+    def get_page_as_html(self, page_idx: int) -> html.HtmlElement:
         """Get textual content including bounding boxes of each word, represented as the root of the xml tree."""
-        if self._root is None:
-            bbox_text = self._extract_text_from_pdf("-bbox-layout")
-            self._root = html.fromstring(bbox_text, parser=self.parser)
-        return self._root
+        bbox_text = self.extract_text_from_pdf(pdftotext_layout_argument="-bbox-layout", page_idx=page_idx)
+        return html.fromstring(bbox_text, parser=self.parser)
 
     def get_pages(self) -> Dict[int, List[html.HtmlElement]]:
         """Return a dictionary {page_num: list_of_words (as xml elements)}."""
         res = {}
-        root = self.text_with_bb
-        for page_num, page in enumerate(root.findall(".//page")):
-            res[page_num] = page.findall(".//word")
+        for page_idx in range(self.number_of_pages):
+            res[page_idx] = self.get_page_as_html(page_idx=page_idx).findall(".//word")
         return res
 
     def get_pages_as_text(self) -> Dict[int, List[str]]:

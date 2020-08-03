@@ -5,7 +5,6 @@ from tempfile import mkstemp
 
 import numpy as np
 from PIL import Image
-from lxml import html
 
 from kx_pdf_tools.ocr import Scanner
 from kx_pdf_tools.pdf_handler import Pdf
@@ -76,7 +75,7 @@ class TestPdf(unittest.TestCase):
         simple_text = self.pdf.simple_text
         layout_text = self.pdf.layout_text
         # xml with bounding boxes of words
-        root = self.pdf.text_with_bb
+        root = self.pdf.get_page_as_html(0)
 
         # list of strings (one per page)
         simple_pages = [page for page in simple_text.split("\f") if page]
@@ -85,7 +84,6 @@ class TestPdf(unittest.TestCase):
         # We have two pages in the pdf
         self.assertEqual(len(simple_pages), 2)
         self.assertEqual(len(layout_pages), 2)
-        self.assertEqual(len(root.findall(".//page")), 2)
 
         # Test that first page contain expected words
         words_in_first_page = set(simple_pages[0].split())
@@ -115,11 +113,6 @@ class TestPdf(unittest.TestCase):
 
     def test_text_extraction_from_rotated_pdf(self):
         """Check that bounding box of a word in pdf is where it should be."""
-        root = self.pdf.text_with_bb
-
-        # here we at least check the type
-        self.assertTrue(isinstance(root, html.HtmlElement))
-
         pages = self.pdf.get_pages()
         pages_rotated = self.pdf_rotated.get_pages()
         pages_txt = self.pdf.get_pages_as_text()
