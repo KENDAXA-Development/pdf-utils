@@ -34,7 +34,16 @@ class AnnotatedPdf(Pdf):
         super().__init__(pdf_path)
         self._raw_annotations = AnnotationExtractor().get_annot_from_pdf(self)
         self._enriched_annotations = None
-        self._flow_to_id = None
+
+        # list of all pages, as html element
+        self._pages_as_html = [self.get_page_as_html(page_idx).find(".//page")
+                               for page_idx in range(self.number_of_pages)]
+        self._page_to_page_idx = {page: page_idx for page_idx, page in enumerate(self._pages_as_html)}
+
+        # List of all flow, as they are in the html pages.
+        # This should be the only place where we search in html, so that all flows are unique as objects
+        self._flows_as_html = sum([page.findall(".//flow") for page in self._pages_as_html], [])
+        self._flow_to_id = {flow: _id for _id, flow in enumerate(self._flows_as_html)}
 
     @property
     def raw_annotations(self) -> List[Annotation]:
@@ -91,12 +100,11 @@ class AnnotatedPdf(Pdf):
             }.
         """
         # check if digital content exists
-        if len(self.text_with_bb.findall(".//word")) < self.minimal_words_in_document:
+        nr_words = sum(len(v) for v in self.get_pages().values())
+        if nr_words < self.minimal_words_in_document:
             logger.warning("Cannot extract digital content from pdf (no words there).")
             return {}
 
-        # enumerate flows
-        flows_to_id = self._enumerate_flows()
         # create flows with words, but no annotations yet
         annotated_flows = self._initialize_flows()
 
@@ -115,7 +123,7 @@ class AnnotatedPdf(Pdf):
                                f"(file {self.pdf_path}, skipping")
                 continue
             # here we find in which flow the annotation is
-            current_flow_id = flows_to_id[neighborhood["flow"]]
+            current_flow_id = self._flow_to_id[neighborhood["flow"]]
             annot_text_content = annot["annotation"].text_content
             if not annot_text_content:
                 logger.warning(f"rectangle annotation with empty text_content found, annot={annot['annotation']}")
@@ -132,13 +140,15 @@ class AnnotatedPdf(Pdf):
 
         This is the backend of the `enriched_annotations` method.
         """
-        pages = self.get_pages()
+        pages = self._pages_as_html
         matched_annotations = []
         for annot in self.raw_annotations:
             if annot.type in self._enrich_annotation_types:
                 matched_annotations.append({
                     "annotation": annot,
-                    "words": self._find_words_related_to_one_annotation(annot, pages[annot.page])})
+                    "words": self._find_words_related_to_one_annotation(
+                        annot,
+                        pages[annot.page].findall(".//word"))})
         return matched_annotations
 
     def _find_words_related_to_one_annotation(self,
@@ -174,22 +184,14 @@ class AnnotatedPdf(Pdf):
     def _initialize_flows(self) -> Dict[int, Dict]:
         """Create a dictionary from flow_id to information about words in this flow."""
         flows = {}
-        flow_to_id = self._enumerate_flows()
-        for page_num, page in enumerate(self.text_with_bb.findall(".//page")):
-            for flow in page.findall(".//flow"):
-                flow_id = flow_to_id[flow]
-                flows[flow_id] = {
-                    "words": [w.text for w in flow.findall(".//word")],
-                    "page": page_num,
-                    "annotated_indices": defaultdict(list),
-                }
+        for flow in self._flows_as_html:
+            flow_id = self._flow_to_id[flow]
+            parent_page = flow.getparent()
+            flows[flow_id] = {
+                "words": [w.text for w in flow.findall(".//word")],
+                "page": self._page_to_page_idx[parent_page],
+                "annotated_indices": defaultdict(list)}
         return flows
-
-    def _enumerate_flows(self, recompute: bool = False) -> Dict[html.HtmlElement, int]:
-        """Get a dictionary from flow (as html element) to flow_id (integer)."""
-        if self._flow_to_id is None or recompute:
-            self._flow_to_id = {flow: i for i, flow in enumerate(self.text_with_bb.findall(".//flow"))}
-        return self._flow_to_id
 
     @staticmethod
     def _get_scored_words(words_in_page: List[html.HtmlElement],

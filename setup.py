@@ -15,7 +15,7 @@ with open(path.join(PATH_HERE, "requirements.txt")) as fp:
 
 setup(
     name='kx-pdf-tools',
-    version='0.1',
+    version='0.1.1',
     url='https://bitbucket.kendaya.net/projects/KXLAB/repos/pdf-tools/',
     author=u"Kendaxa",
     author_email="develop@kendaxa.com",
