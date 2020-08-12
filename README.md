@@ -20,7 +20,7 @@ Main tools for reading pdf files are the PyPDF2 library. Non-python dependencies
 * [Tesseract](https://tesseract-ocr.github.io/tessdoc/Home.html), and 
 * [OpenCV](https://opencv.org/).
 
-To install Poppler, see the guide in the [pdf2image redme](https://pypi.org/project/pdf2image/).
+To install Poppler, see the guide in the [pdf2image readme](https://pypi.org/project/pdf2image/).
 
 ## How to
 
