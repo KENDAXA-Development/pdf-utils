@@ -34,10 +34,11 @@ jobs:
     - name: Install Dependencie
       run: |
         echo "Installing non-python dependencies"
-        apt-get install -y python-opencv
-        apt-get install -y poppler-utils
-        apt-get install -y tesseract-ocr
-        apt-get install -y python3-distutils
+        sudo apt-get update -y && \
+         apt-get install -y python-opencv && \
+         apt-get install -y poppler-utils && \
+         apt-get install -y tesseract-ocr && \
+         apt-get install -y python3-distutils
 
     # Runs a set of commands using the runners shell
     - name: Install tox
