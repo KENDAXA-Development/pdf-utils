@@ -20,7 +20,8 @@ class TestRectangle(unittest.TestCase):
         im_from_pdf = converter.image_from_pdf_page(PDF_PATH, page_num=0, dpi=150, return_numpy=True)
 
         self.assertEqual(im_1.shape, im_from_pdf.shape)
-        self.assertLess(np.mean(im_1 - im_from_pdf), 0.01)
+        print(naive_image_similarity(im_1, im_from_pdf))
+        self.assertGreater(naive_image_similarity(im_1, im_from_pdf), 0.95)
 
     def test_pdf_box_to_image_box(self):
         """Transform bounding box from points to pixels.
