@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python: [3.7, 3.8]
+        python: [3.8]
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -35,6 +35,7 @@ jobs:
       run: |
         echo "Installing non-python dependencies"
         sudo apt-get update -y
+        sudo apt-get install -y python3.7
         sudo apt-get install -y python-opencv
         sudo apt-get install -y poppler-utils
         sudo apt-get install -y tesseract-ocr
