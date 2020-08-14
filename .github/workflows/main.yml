@@ -31,7 +31,7 @@ jobs:
       with:
         python-version: ${{ matrix.python }}
 
-    - name: Install Dependencie
+    - name: Install Dependencies
       run: |
         echo "Installing non-python dependencies"
         sudo apt-get update -y
@@ -45,7 +45,7 @@ jobs:
     - name: Install tox
       run: pip install tox
 
-    - name: Run tox (flake8, tests and cove coverage)
+    - name: Run tox (flake8, tests and code coverage)
       run: |
         echo "Just showing off the multi command option, next command will run tox."
         tox
@@ -59,7 +59,7 @@ jobs:
     - name: Creating sdist
       if: github.event_name == 'push'
       run:
-        python setup.py sdist bdist_wheel
+        python setup.py sdist
 
     - name: Publish package
       if: github.event_name == 'push'
