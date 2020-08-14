@@ -31,6 +31,16 @@ jobs:
       with:
         python-version: ${{ matrix.python }}
 
+    - name: Install Dependencie
+      run: |
+        echo "Installing non-python dependencies"
+        sudo apt-get update -y
+        sudo apt-get install -y python3.7
+        sudo apt-get install -y python-opencv
+        sudo apt-get install -y poppler-utils
+        sudo apt-get install -y tesseract-ocr
+        sudo apt-get install -y python3-distutils
+
     # Runs a set of commands using the runners shell
     - name: Install tox
       run: pip install tox
@@ -45,3 +55,10 @@ jobs:
       with:
         name: coverage-result-${{ matrix.python-version }}
         path: htmlcov/
+
+    - name: Publish package
+      if: github.event_name == 'push'
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: kxd
+        password: ${{ secrets.PYPI_PASSWORD }}
