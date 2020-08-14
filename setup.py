@@ -1,5 +1,6 @@
 from os import path
 from setuptools import setup
+from kx_pdf_tools import __version__
 
 
 PATH_HERE = path.abspath(path.dirname(__file__))
@@ -15,7 +16,7 @@ with open(path.join(PATH_HERE, "requirements.txt")) as fp:
 
 setup(
     name='kx-pdf-tools',
-    version='0.1.1',
+    version=__version__,
     url='https://bitbucket.kendaya.net/projects/KXLAB/repos/pdf-tools/',
     author=u"Kendaxa",
     author_email="develop@kendaxa.com",
