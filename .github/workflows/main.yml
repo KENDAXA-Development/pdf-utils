@@ -55,3 +55,10 @@ jobs:
       with:
         name: coverage-result-${{ matrix.python-version }}
         path: htmlcov/
+
+    - name: Publish package
+      if: github.event_name == 'push'
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: kxd
+        password: ${{ secrets.PYPI_PASSWORD }}
