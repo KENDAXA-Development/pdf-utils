@@ -5,12 +5,11 @@ When contributing to this repository, please first discuss the change you wish t
 
 ## Pull Request Process
 
-We use the `dev` branch for the main development and master for stable package releases.
 To contribute,
 
-- Create a fork of this project from `dev` branch.
+- Create a fork of this project from `master` branch.
 - Develop the changes in your fork and make sure they pass the tests.
-- Create a pull request with your changes into the `dev` branch, remember to reference the issue to which the PR is tied.
+- Create a pull request with your changes into the `master` branch, remember to reference the issue to which the PR is tied.
 - The maintainers will be notified, so now you can just wait for approval.
 
 ## Use Consistent Code Style
