@@ -44,7 +44,7 @@ venv/
 
 # Packaging
 dist/
-pdf_tools.egg-info/
+kx_pdf_tools.egg-info/
 
 # MacOS and general nonsense
 **/.DS_Store
