@@ -130,7 +130,7 @@ class Pdf:
                               page_idx: Optional[int] = None) -> str:
         """Get textual pdf content. Wrapper of Poppler's pdftotext.
 
-        :param pdftotext_layout_argument: None, "-layout" or "rbbox-layout". Argument passed to the pdftotext
+        :param pdftotext_layout_argument: None, "-layout" or "-bbox-layout". Argument passed to the pdftotext
         :return: pdftotext result
         """
         pdftotext_args = ["pdftotext"]
