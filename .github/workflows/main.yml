@@ -62,7 +62,7 @@ jobs:
         # inline YAML or path to separate file (e.g.: .github/filters.yaml)
         filters: |
           version:
-            - 'example/__version__.py'
+            - 'pdf_utils/__version__.py'
 
     # run only if '__version__.py' has changed
     - name: sdist
