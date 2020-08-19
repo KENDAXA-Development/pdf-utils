@@ -5,7 +5,7 @@ One of the use-cases might be the extraction of pdf-annotations for ML / NLP.
 
 Support for
 
-* obtaining textual and vizual content of pdf files
+* obtaining textual and visual content of pdf files
 * locating positions of words
 * fetching pdf annotations
 * adding a digital layer to image-pdfs
