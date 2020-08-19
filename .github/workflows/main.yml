@@ -61,17 +61,17 @@ jobs:
       with:
         # inline YAML or path to separate file (e.g.: .github/filters.yaml)
         filters: |
-          main_init:
+          version:
             - 'example/__version__.py'
 
     # run only if '__version__.py' has changed
     - name: sdist
-      if: steps.filter.outputs.main_init == 'true' && github.event_name == 'push'
+      if: steps.filter.outputs.version == 'true' && github.event_name == 'push'
       run: python setup.py sdist
 
     # run only if '__version__.py' has changed
     - name: publish
-      if: steps.filter.outputs.main_init == 'true' && github.event_name == 'push'
+      if: steps.filter.outputs.version == 'true' && github.event_name == 'push'
       uses: pypa/gh-action-pypi-publish@master
       with:
         user: __token__
