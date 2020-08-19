@@ -16,7 +16,7 @@ def read(f_relative_path: str) -> str:
 
 def get_version() -> str:
     """Return the package version as defined in kx_core/__init__.py."""
-    version = read("example/__version__.py")
+    version = read("pdf_utils/__version__.py")
     return re.search(r"__version__ = \"(.*?)\"", version).group(1)
 
 
