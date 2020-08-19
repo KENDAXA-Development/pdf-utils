@@ -1,2 +1,2 @@
-"""Version name of the package."""
+"""Package version."""
 __version__ = "0.1.1"
