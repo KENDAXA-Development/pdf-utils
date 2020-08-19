@@ -3,8 +3,8 @@ import re
 import unittest
 from tempfile import mkstemp
 
-from kx_pdf_tools.ocr import Scanner
-from kx_pdf_tools.pdf_handler import Pdf
+from pdf_utils.ocr import Scanner
+from pdf_utils.pdf_handler import Pdf
 from tests import PDF_PATH
 
 

@@ -15,9 +15,9 @@ from PIL import Image
 from PyPDF2 import PdfFileReader
 from lxml import html
 
-from kx_pdf_tools.converter import image_from_pdf_page, merge_pdfs
-from kx_pdf_tools.ocr import Scanner
-from kx_pdf_tools.rectangle import Rectangle
+from pdf_utils.converter import image_from_pdf_page, merge_pdfs
+from pdf_utils.ocr import Scanner
+from pdf_utils.rectangle import Rectangle
 
 logger = logging.getLogger(__name__)
 

@@ -9,7 +9,7 @@ import cv2
 import numpy as np
 from scipy.stats import pearsonr
 
-from kx_pdf_tools.annotation import Annotation
+from pdf_utils.annotation import Annotation
 
 
 def naive_image_similarity(im1: np.ndarray, im2: np.ndarray, kernel: Tuple = (7, 7)) -> float:

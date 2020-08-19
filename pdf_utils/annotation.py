@@ -10,8 +10,8 @@ from typing import Any, Dict, List, Optional, Union
 from PyPDF2.generic import ByteStringObject, IndirectObject
 from PyPDF2.pdf import PageObject
 
-from kx_pdf_tools.pdf_handler import CannotReadPdf, Pdf
-from kx_pdf_tools.rectangle import Rectangle
+from pdf_utils.pdf_handler import CannotReadPdf, Pdf
+from pdf_utils.rectangle import Rectangle
 
 logger = logging.getLogger(__name__)
 
