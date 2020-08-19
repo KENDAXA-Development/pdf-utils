@@ -56,14 +56,24 @@ jobs:
         name: coverage-result-${{ matrix.python-version }}
         path: htmlcov/
 
-    - name: Creating sdist
-      if: github.event_name == 'push'
-      run:
-        python setup.py sdist
+    - uses: dorny/paths-filter@v2.2.1
+      id: filter
+      with:
+        # inline YAML or path to separate file (e.g.: .github/filters.yaml)
+        filters: |
+          main_init:
+            - 'example/__version__.py'
 
-    - name: Publish package
-      if: github.event_name == 'push'
+    # run only if '__version__.py' has changed
+    - name: sdist
+      if: steps.filter.outputs.main_init == 'true' && github.event_name == 'push'
+      run: python setup.py sdist
+
+    # run only if '__version__.py' has changed
+    - name: publish
+      if: steps.filter.outputs.main_init == 'true' && github.event_name == 'push'
       uses: pypa/gh-action-pypi-publish@master
       with:
         user: __token__
         password: ${{ secrets.PYPI_UPLOAD_API_KEY }}
+

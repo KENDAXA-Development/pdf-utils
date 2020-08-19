@@ -6,7 +6,7 @@ from PIL import Image
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen.canvas import Canvas
 
-from kx_pdf_tools.rectangle import Rectangle
+from pdf_utils.rectangle import Rectangle
 
 
 class Scanner:

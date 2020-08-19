@@ -6,9 +6,9 @@ from tempfile import mkstemp
 import numpy as np
 from PIL import Image
 
-from kx_pdf_tools.ocr import Scanner
-from kx_pdf_tools.pdf_handler import Pdf
-from kx_pdf_tools.rectangle import Rectangle
+from pdf_utils.ocr import Scanner
+from pdf_utils.pdf_handler import Pdf
+from pdf_utils.rectangle import Rectangle
 from tests import FIRST_PDF_PAGE_PATH, PDF_PATH, PDF_ROTATED_PATH
 from tests.object_similarity import naive_image_similarity
 
