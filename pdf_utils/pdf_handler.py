@@ -8,6 +8,7 @@ import shutil
 import subprocess
 from pathlib import Path
 from tempfile import mkdtemp
+from sys import platform
 from typing import Dict, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
@@ -140,8 +141,14 @@ class Pdf:
         if page_idx is not None:
             pdftotext_args.extend(["-f", str(page_idx + 1), "-l", str(page_idx + 1)])
 
-        return subprocess.check_output(
-            pdftotext_args + [str(self.pdf_path), "-"], universal_newlines=True)
+        if platform == "linux" or platform == "darwin":
+            return subprocess.check_output(
+                pdftotext_args + [str(self.pdf_path), "-"], universal_newlines=True)
+        elif platform == "win32":
+            return subprocess.check_output(
+                pdftotext_args + [str(self.pdf_path), "-"], universal_newlines=True, shell=True, encoding='UTF-8')
+        else:
+            logging.error("System not recognized")
 
     @property
     def simple_text(self) -> str:
