@@ -7,8 +7,8 @@ import logging
 import shutil
 import subprocess
 from pathlib import Path
-from tempfile import mkdtemp
 from sys import platform
+from tempfile import mkdtemp
 from typing import Dict, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
